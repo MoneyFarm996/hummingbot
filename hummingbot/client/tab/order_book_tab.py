@@ -1,11 +1,14 @@
 import asyncio
+from typing import TYPE_CHECKING, Any, Dict
+
 import pandas as pd
 
-from typing import TYPE_CHECKING, Dict, Any
 if TYPE_CHECKING:
     from hummingbot.client.hummingbot_application import HummingbotApplication
 
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.client.ui.custom_widgets import CustomTextArea
+
 from .tab_base import TabBase
 
 
@@ -16,15 +19,16 @@ class OrderBookTab(TabBase):
 
     @classmethod
     def get_command_help_message(cls) -> str:
-        return "Display current order book"
+        # return "Display current order book"
+        return _("Display current order book")
 
     @classmethod
     def get_command_arguments(cls) -> Dict[str, Dict[str, Any]]:
         return {
-            "--lines": {'type': int, 'default': 5, 'dest': "lines", 'help': "Number of lines to display"},
-            "--exchange": {'type': str, 'dest': "exchange", 'help': "The exchange of the market"},
-            "--market": {'type': str, 'dest': "market", 'help': "The market (trading pair) of the order book"},
-            "--live": {'default': False, 'action': "store_true", 'dest': "live", 'help': "Show order book updates"}
+            "--lines": {'type': int, 'default': 5, 'dest': "lines", 'help': _("Number of lines to display")},
+            "--exchange": {'type': str, 'dest': "exchange", 'help': _("The exchange of the market")},
+            "--market": {'type': str, 'dest': "market", 'help': _("The market (trading pair) of the order book")},
+            "--live": {'default': False, 'action': "store_true", 'dest': "live", 'help': _("Show order book updates")}
         }
 
     @classmethod
@@ -36,11 +40,13 @@ class OrderBookTab(TabBase):
                       market: str = None,
                       live: bool = False):
         if len(hummingbot.markets.keys()) == 0:
-            output_field.log("There is currently no active market.")
+            # output_field.log("There is currently no active market.")
+            output_field.log(_("There is currently no active market."))
             return
         if exchange is not None:
             if exchange not in hummingbot.markets:
-                output_field.log("Invalid exchange")
+                # output_field.log("Invalid exchange")
+                output_field.log(_("Invalid exchange"))
                 return
             market_connector = hummingbot.markets[exchange]
         else:
@@ -48,7 +54,8 @@ class OrderBookTab(TabBase):
         if market is not None:
             market = market.upper()
             if market not in market_connector.order_books:
-                output_field.log("Invalid market")
+                # output_field.log("Invalid market")
+                output_field.log(_("Invalid market"))
                 return
             trading_pair, order_book = market, market_connector.order_books[market]
         else:

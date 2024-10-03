@@ -1,8 +1,9 @@
 from decimal import Decimal
 
 from hummingbot.client.config.fee_overrides_config_map import fee_overrides_config_map
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.client.settings import AllConnectorSettings
-from hummingbot.core.data_type.trade_fee import TradeFeeSchema, TokenAmount
+from hummingbot.core.data_type.trade_fee import TokenAmount, TradeFeeSchema
 
 
 class TradeFeeSchemaLoader:
@@ -14,7 +15,8 @@ class TradeFeeSchemaLoader:
     @classmethod
     def configured_schema_for_exchange(cls, exchange_name: str) -> TradeFeeSchema:
         if exchange_name not in AllConnectorSettings.get_connector_settings():
-            raise Exception(f"Invalid connector. {exchange_name} does not exist in AllConnectorSettings")
+            # raise Exception(f"Invalid connector. {exchange_name} does not exist in AllConnectorSettings")
+            raise Exception(_("Invalid connector. {exchange_name} does not exist in AllConnectorSettings").format(exchange_name=exchange_name))
         trade_fee_schema = AllConnectorSettings.get_connector_settings()[exchange_name].trade_fee_schema
         trade_fee_schema = cls._superimpose_overrides(exchange_name, trade_fee_schema)
         return trade_fee_schema

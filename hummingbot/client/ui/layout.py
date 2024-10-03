@@ -19,60 +19,22 @@ from prompt_toolkit.layout.menus import CompletionsMenu
 from prompt_toolkit.widgets import Box, Button, SearchToolbar
 
 from hummingbot.client.config.config_helpers import ClientConfigAdapter
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.client.settings import MAXIMUM_LOG_PANE_LINE_COUNT, MAXIMUM_OUTPUT_PANE_LINE_COUNT
 from hummingbot.client.tab.data_types import CommandTab
 from hummingbot.client.ui.custom_widgets import CustomTextArea as TextArea, FormattedTextLexer
 
-HEADER = """
-                                                *,.
-                                                *,,,*
-                                            ,,,,,,,               *
-                                            ,,,,,,,,            ,,,,
-                                            *,,,,,,,,(        .,,,,,,
-                                        /,,,,,,,,,,     .*,,,,,,,,
-                                        .,,,,,,,,,,,.  ,,,,,,,,,,,*
-                                        ,,,,,,,,,,,,,,,,,,,,,,,,,,,
-                            //      ,,,,,,,,,,,,,,,,,,,,,,,,,,,,#*%
-                        .,,,,,,,,. *,,,,,,,,,,,,,,,,,,,,,,,,,,,%%%%%%&@
-                        ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,%%%%%%%&
-                    ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,%%%%%%%&
-                    /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,(((((%%&
-                **.         #,,,,,,,,,,,,,,,,,,,,,,,,,,,,,((((((((((#.
-            **               *,,,,,,,,,,,,,,,,,,,,,,,,**/(((((((((((((*
-                                ,,,,,,,,,,,,,,,,,,,,*********((((((((((((
-                                ,,,,,,,,,,,,,,,**************((((((((@
-                                (,,,,,,,,,,,,,,,***************(#
-                                    *,,,,,,,,,,,,,,,,**************/
-                                    ,,,,,,,,,,,,,,,***************/
-                                        ,,,,,,,,,,,,,,****************
-                                        .,,,,,,,,,,,,**************/
-                                            ,,,,,,,,*******,
-                                            *,,,,,,,,********
-                                            ,,,,,,,,,/******/
-                                            ,,,,,,,,,@  /****/
-                                            ,,,,,,,,
-                                            , */
+connect_tip = _("List available exchanges and add API keys to them")
+balance_tip = _("See your exchange balances")
+start_tip = _("Start a script or strategy")
+help_tip = _("List all commands")
 
-
-██   ██ ██    ██ ███    ███ ███    ███ ██ ███    ██  ██████  ██████   ██████  ████████
-██   ██ ██    ██ ████  ████ ████  ████ ██ ████   ██ ██       ██   ██ ██    ██    ██
-███████ ██    ██ ██ ████ ██ ██ ████ ██ ██ ██ ██  ██ ██   ███ ██████  ██    ██    ██
-██   ██ ██    ██ ██  ██  ██ ██  ██  ██ ██ ██  ██ ██ ██    ██ ██   ██ ██    ██    ██
-██   ██  ██████  ██      ██ ██      ██ ██ ██   ████  ██████  ██████   ██████     ██
-
-======================================================================================
-Hummingbot is an open source software client that helps you build and run
-market making, arbitrage, and other high-frequency trading bots.
-
-- Official repo: https://github.com/hummingbot/hummingbot
-- Join the community: https://discord.gg/hummingbot
-- Learn market making: https://hummingbot.org/botcamp
-
+HEADER = f"""
 Useful Commands:
-- connect     List available exchanges and add API keys to them
-- balance     See your exchange balances
-- start       Start a script or strategy
-- help        List all commands
+- connect     {connect_tip}
+- balance     {balance_tip}
+- start       {start_tip}
+- help        {help_tip}
 
 """
 
@@ -139,20 +101,20 @@ def create_trade_monitor():
 
 
 def create_search_field() -> SearchToolbar:
-    return SearchToolbar(text_if_not_searching=[('class:primary', "[CTRL + F] to start searching.")],
-                         forward_search_prompt=[('class:primary', "Search logs [Press CTRL + F to hide search] >>> ")],
+    return SearchToolbar(text_if_not_searching=[('class:primary', _("[CTRL + F] to start searching."))],
+                         forward_search_prompt=[('class:primary', _("Search logs [Press CTRL + F to hide search] >>> "))],
                          ignore_case=True)
 
 
 def create_log_field(search_field: SearchToolbar):
     return TextArea(
         style='class:log_field',
-        text="Running Logs\n",
+        text=_("Running Logs\n"),
         focus_on_click=False,
         read_only=False,
         scrollbar=True,
         max_line_count=MAXIMUM_LOG_PANE_LINE_COUNT,
-        initial_text="Running Logs \n",
+        initial_text=_("Running Logs \n"),
         search_field=search_field,
         preview_search=False,
     )
@@ -170,7 +132,7 @@ def create_live_field():
 
 def create_log_toggle(function):
     return Button(
-        text='> log pane',
+        text=_('> log pane'),
         width=13,
         handler=function,
         left_symbol='',
@@ -189,21 +151,25 @@ def create_tab_button(text, function, margin=2, left_symbol=' ', right_symbol=' 
 
 
 def get_version():
-    return [("class:header", f"Version: {version}")]
+    # return [("class:header", f"Version: {version}")]
+    version_str = _("Version: {}").format(version)
+    return [("class:header", version_str)]
 
 
 def get_active_strategy():
     from hummingbot.client.hummingbot_application import HummingbotApplication
     hb = HummingbotApplication.main_application()
     style = "class:log_field"
-    return [(style, f"Strategy: {hb.strategy_name}")]
+    strategy_str = _("Strategy: {strategy_name}").format(strategy_name=hb.strategy_name)
+    return [(style, strategy_str)]
 
 
 def get_strategy_file():
     from hummingbot.client.hummingbot_application import HummingbotApplication
     hb = HummingbotApplication.main_application()
     style = "class:log_field"
-    return [(style, f"Strategy File: {hb._strategy_file_name}")]
+    strategy_file_str = _("Strategy File: {strategy_file_name}").format(strategy_file_name=hb._strategy_file_name)
+    return [(style, strategy_file_str)]
 
 
 def get_gateway_status():
@@ -211,7 +177,8 @@ def get_gateway_status():
     hb = HummingbotApplication.main_application()
     gateway_status = hb._gateway_monitor.gateway_status.name
     style = "class:log_field"
-    return [(style, f"Gateway: {gateway_status}")]
+    gateway_status = _("Gateway: {gateway_status}").format(gateway_status=gateway_status)
+    return [(style, gateway_status)]
 
 
 def generate_layout(input_field: TextArea,

@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, List, Optional
 import pandas as pd
 from sqlalchemy.orm import Query, Session
 
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.client.config.security import Security
 from hummingbot.client.settings import DEFAULT_LOG_FILE_PATH
 from hummingbot.core.utils.async_utils import safe_ensure_future
@@ -17,7 +18,8 @@ class ExportCommand:
     def export(self,  # type: HummingbotApplication
                option):
         if option is None or option not in ("keys", "trades"):
-            self.notify("Invalid export option.")
+            # self.notify("Invalid export option.")
+            self.notify(_("Invalid export option."))
             return
         elif option == "keys":
             safe_ensure_future(self.export_keys())
@@ -28,14 +30,18 @@ class ExportCommand:
                           ):
         await Security.wait_til_decryption_done()
         if not Security.any_secure_configs():
-            self.notify("There are no keys to export.")
+            # self.notify("There are no keys to export.")
+            self.notify(_("There are no keys to export."))
             return
         self.placeholder_mode = True
         self.app.hide_input = True
         if await self.check_password():
-            self.notify("\nWarning: Never disclose API keys or private keys. Anyone with your keys can steal any "
-                        "assets held in your account.")
-            self.notify("\nAPI keys:")
+            # self.notify("\nWarning: Never disclose API keys or private keys. Anyone with your keys can steal any "
+            #             "assets held in your account.")
+            # self.notify("\nAPI keys:")
+            self.notify(
+                _("\nWarning: Never disclose API keys or private keys. Anyone with your keys can steal any assets held in your account."))
+            self.notify(_("\nAPI keys:"))
             for key, cm in Security.all_decrypted_values().items():
                 for el in cm.traverse(secure=False):
                     if el.client_field_data is not None and el.client_field_data.is_secure:
@@ -46,9 +52,11 @@ class ExportCommand:
 
     async def prompt_new_export_file_name(self,  # type: HummingbotApplication
                                           path):
-        input = await self.app.prompt(prompt="Enter a new csv file name >>> ")
+        # input = await self.app.prompt(prompt="Enter a new csv file name >>> ")
+        input = await self.app.prompt(prompt=_("Enter a new csv file name >>> "))
         if input is None or input == "":
-            self.notify("Value is required.")
+            # self.notify("Value is required.")
+            self.notify(_("Value is required."))
             return await self.prompt_new_export_file_name(path)
         if input == " ":
             return None
@@ -56,7 +64,8 @@ class ExportCommand:
             input = input + ".csv"
         file_path = os.path.join(path, input)
         if os.path.exists(file_path):
-            self.notify(f"{input} file already exists, please enter a new name.")
+            # self.notify(f"{input} file already exists, please enter a new name.")
+            self.notify(_(f"{input} file already exists, please enter a new name."))
             return await self.prompt_new_export_file_name(path)
         else:
             return input
@@ -68,7 +77,8 @@ class ExportCommand:
                 int(self.init_time * 1e3),
                 session=session)
             if len(trades) == 0:
-                self.notify("No past trades to export.")
+                # self.notify("No past trades to export.")
+                self.notify(_("No past trades to export."))
                 return
             self.placeholder_mode = True
             self.app.hide_input = True
@@ -82,9 +92,11 @@ class ExportCommand:
             try:
                 df: pd.DataFrame = TradeFill.to_pandas(trades)
                 df.to_csv(file_path, header=True)
-                self.notify(f"Successfully exported trades to {file_path}")
+                # self.notify(f"Successfully exported trades to {file_path}")
+                self.notify(_("Successfully exported trades to {file_path}").format(file_path=file_path))
             except Exception as e:
-                self.notify(f"Error exporting trades to {path}: {e}")
+                # self.notify(f"Error exporting trades to {path}: {e}")
+                self.notify(_("Error exporting trades to {path}: {e}").format(path=path, e=e))
             self.app.change_prompt(prompt=">>> ")
             self.placeholder_mode = False
             self.app.hide_input = False

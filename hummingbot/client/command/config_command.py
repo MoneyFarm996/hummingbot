@@ -14,6 +14,7 @@ from hummingbot.client.config.config_helpers import (
 )
 from hummingbot.client.config.config_validators import validate_bool, validate_decimal
 from hummingbot.client.config.config_var import ConfigVar
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.client.config.security import Security
 from hummingbot.client.config.strategy_config_data_types import BaseTradingStrategyConfigMap
 from hummingbot.client.settings import CLIENT_CONFIG_PATH, STRATEGIES_CONF_DIR_PATH
@@ -121,7 +122,7 @@ class ConfigCommand:
     ):
         data = self.build_model_df_data(self.client_config_map, to_print=client_configs_to_display)
         df = map_df_to_str(pd.DataFrame(data=data, columns=columns))
-        self.notify("\nGlobal Configurations:")
+        self.notify(_("\nGlobal Configurations:"))
         lines = ["    " + line for line in format_df_for_printout(
             df,
             table_format=self.client_config_map.tables_format,
@@ -130,7 +131,7 @@ class ConfigCommand:
 
         data = self.build_model_df_data(self.client_config_map, to_print=color_settings_to_display)
         df = map_df_to_str(pd.DataFrame(data=data, columns=columns))
-        self.notify("\nColor Settings:")
+        self.notify(_("\nColor Settings:"))
         lines = ["    " + line for line in format_df_for_printout(
             df,
             table_format=self.client_config_map.tables_format,
@@ -144,7 +145,7 @@ class ConfigCommand:
             config_map = self.strategy_config_map
             data = self.build_df_data_from_config_map(config_map)
             df = map_df_to_str(pd.DataFrame(data=data, columns=columns))
-            self.notify("\nStrategy Configurations:")
+            self.notify(_("\nStrategy Configurations:"))
             lines = ["    " + line for line in format_df_for_printout(
                 df,
                 table_format=self.client_config_map.tables_format,
@@ -171,9 +172,9 @@ class ConfigCommand:
             if to_print is not None and traversal_item.attr not in to_print:
                 continue
             attr_printout = (
-                "  " * (traversal_item.depth - 1)
-                + (u"\u221F " if not is_windows() else "  ")
-                + traversal_item.attr
+                    "  " * (traversal_item.depth - 1)
+                    + (u"\u221F " if not is_windows() else "  ")
+                    + traversal_item.attr
             ) if traversal_item.depth else traversal_item.attr
             model_data.append((attr_printout, traversal_item.printable_value))
         return model_data
@@ -204,9 +205,13 @@ class ConfigCommand:
 
     async def check_password(self,  # type: HummingbotApplication
                              ):
+        """
+        Check if the password is correct.s
+        :return:
+        """
         password = await self.app.prompt(prompt="Enter your password >>> ", is_password=True)
         if password != Security.secrets_manager.password.get_secret_value():
-            self.notify("Invalid password, please try again.")
+            self.notify(_("Invalid password, please try again."))
             return False
         else:
             return True
@@ -245,18 +250,18 @@ class ConfigCommand:
                     config_map = self.client_config_map
                     file_path = CLIENT_CONFIG_PATH
                 elif self.strategy is not None:
-                    self.notify("Configuring the strategy while it is running is not currently supported.")
+                    self.notify(_("Configuring the strategy while it is running is not currently supported."))
                     return
                 else:
                     config_map = self.strategy_config_map
                     if self.strategy_file_name is not None:
                         file_path = STRATEGIES_CONF_DIR_PATH / self.strategy_file_name
                     else:
-                        self.notify("Strategy file name is not configured.")
+                        self.notify(_("Strategy file name is not configured."))
                         return
 
                 if input_value is None:
-                    self.notify("Please follow the prompt to complete configurations: ")
+                    self.notify(_("Please follow the prompt to complete configurations: "))
                 if key == "inventory_target_base_pct":
                     await self.asset_ratio_maintenance_prompt(config_map, input_value)
                 elif key == "inventory_price":
@@ -267,7 +272,7 @@ class ConfigCommand:
                     self.app.to_stop_config = False
                     return
                 save_to_yml(file_path, config_map)
-                self.notify("\nNew configuration saved.")
+                self.notify(_("\nNew configuration saved."))
                 if client_config_key:
                     self.list_client_configs()
                 else:
@@ -293,11 +298,11 @@ class ConfigCommand:
             file_path = STRATEGIES_CONF_DIR_PATH / self.strategy_file_name
         config_var = config_map[key]
         if config_var.key == "strategy":
-            self.notify("You cannot change the strategy of a loaded configuration.")
-            self.notify("Please use 'import xxx.yml' or 'create' to configure the intended strategy")
+            self.notify(_("You cannot change the strategy of a loaded configuration."))
+            self.notify(_("Please use 'import xxx.yml' or 'create' to configure the intended strategy"))
             return
         if input_value is None:
-            self.notify("Please follow the prompt to complete configurations: ")
+            self.notify(_("Please follow the prompt to complete configurations: "))
         if config_var.key == "inventory_target_base_pct":
             await self.asset_ratio_maintenance_prompt_legacy(config_map, input_value)
         elif config_var.key == "inventory_price":
@@ -309,10 +314,10 @@ class ConfigCommand:
             return
         missings = missing_required_configs_legacy(config_map)
         if missings:
-            self.notify("\nThere are other configuration required, please follow the prompt to complete them.")
+            self.notify(_("\nThere are other configuration required, please follow the prompt to complete them."))
         missings = await self._prompt_missing_configs(config_map)
         save_to_yml_legacy(str(file_path), config_map)
-        self.notify("\nNew configuration saved:")
+        self.notify(_("\nNew configuration saved:"))
         self.notify(f"{key}: {str(config_var.value)}")
         self.app.app.style = load_style(self.client_config_map)
         for config in missings:
@@ -323,8 +328,11 @@ class ConfigCommand:
         ):
             updated = ConfigCommand.update_running_mm(self.strategy, key, config_var.value)
             if updated:
-                self.notify(f"\nThe current {self.strategy_name} strategy has been updated "
-                            f"to reflect the new configuration.")
+                # self.notify(f"\nThe current {self.strategy_name} strategy has been updated "
+                #             f"to reflect the new configuration.")
+                self.notify(
+                    _("The current {strategy_name} strategy has been updated to reflect the new configuration.").format(
+                        strategy_name=self.strategy_name))
 
     async def _prompt_missing_configs(self,  # type: HummingbotApplication
                                       config_map):
@@ -401,7 +409,6 @@ class ConfigCommand:
             base_ratio = round(base_ratio, 3)
             quote_ratio = 1 - base_ratio
             base, quote = config_map["market"].value.split("-")
-
             cvar = ConfigVar(key="temp_config",
                              prompt=f"On {exchange}, you have {balances.get(base, 0):.4f} {base} and "
                                     f"{balances.get(quote, 0):.4f} {quote}. By market value, "
@@ -471,7 +478,7 @@ class ConfigCommand:
                 quote_volume = balances[base_asset] * cvar.value
             except TypeError:
                 # TypeError: unsupported operand type(s) for *: 'decimal.Decimal' and 'NoneType' - bad input / no input
-                self.notify("Inventory price not updated due to bad input")
+                self.notify(_("Inventory price not updated due to bad input"))
                 return
 
             with self.trade_fill_db.get_new_session() as session:

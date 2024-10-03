@@ -12,6 +12,7 @@ from tabulate import tabulate_formats
 from hummingbot.client.config.config_data_types import BaseClientModel, ClientConfigEnum, ClientFieldData
 from hummingbot.client.config.config_methods import using_exchange as using_exchange_pointer
 from hummingbot.client.config.config_validators import validate_bool, validate_float
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.client.settings import DEFAULT_GATEWAY_CERTS_PATH, DEFAULT_LOG_FILE_PATH, AllConnectorSettings
 from hummingbot.connector.connector_base import ConnectorBase
 from hummingbot.connector.connector_metrics_collector import (
@@ -49,7 +50,7 @@ class MQTTBridgeConfigMap(BaseClientModel):
         default="localhost",
         client_data=ClientFieldData(
             prompt=lambda cm: (
-                "Set the MQTT hostname to connect to (e.g. localhost)"
+                _("Set the MQTT hostname to connect to (e.g. localhost)")
             ),
         ),
     )
@@ -57,7 +58,7 @@ class MQTTBridgeConfigMap(BaseClientModel):
         default=1883,
         client_data=ClientFieldData(
             prompt=lambda cm: (
-                "Set the MQTT port to connect to (e.g. 1883)"
+                _("Set the MQTT port to connect to (e.g. 1883)")
             ),
         ),
     )
@@ -65,7 +66,7 @@ class MQTTBridgeConfigMap(BaseClientModel):
         default="",
         client_data=ClientFieldData(
             prompt=lambda cm: (
-                "Set the username for connecting to the MQTT broker"
+                _("Set the username for connecting to the MQTT broker")
             ),
         ),
     )
@@ -73,7 +74,7 @@ class MQTTBridgeConfigMap(BaseClientModel):
         default="",
         client_data=ClientFieldData(
             prompt=lambda cm: (
-                "Set the password for connecting to the MQTT broker"
+                _("Set the password for connecting to the MQTT broker")
             ),
         ),
     )
@@ -81,7 +82,7 @@ class MQTTBridgeConfigMap(BaseClientModel):
         default='hbot',
         client_data=ClientFieldData(
             prompt=lambda cm: (
-                "Set the mqtt uri namespace (Default='hbot')"
+                _("Set the mqtt uri namespace (Default='hbot')")
             ),
         ),
     )
@@ -89,7 +90,7 @@ class MQTTBridgeConfigMap(BaseClientModel):
         default=False,
         client_data=ClientFieldData(
             prompt=lambda cm: (
-                "Enable/Disable SSL for MQTT connections"
+                _("Enable/Disable SSL for MQTT connections")
             ),
         ),
     )
@@ -100,7 +101,7 @@ class MQTTBridgeConfigMap(BaseClientModel):
         default=True,
         client_data=ClientFieldData(
             prompt=lambda cm: (
-                "Enable/Disable MQTT Notifier"
+                _("Enable/Disable MQTT Notifier")
             ),
         ),
     )
@@ -108,7 +109,7 @@ class MQTTBridgeConfigMap(BaseClientModel):
         default=True,
         client_data=ClientFieldData(
             prompt=lambda cm: (
-                "Enable/Disable MQTT Commands"
+                _("Enable/Disable MQTT Commands")
             ),
         ),
     )
@@ -116,7 +117,7 @@ class MQTTBridgeConfigMap(BaseClientModel):
         default=True,
         client_data=ClientFieldData(
             prompt=lambda cm: (
-                "Enable/Disable Events forwarding to MQTT broker"
+                _("Enable/Disable Events forwarding to MQTT broker")
             ),
         ),
     )
@@ -124,7 +125,7 @@ class MQTTBridgeConfigMap(BaseClientModel):
         default=True,
         client_data=ClientFieldData(
             prompt=lambda cm: (
-                "Enable/Disable External MQTT Event listener"
+                _("Enable/Disable External MQTT Event listener")
             ),
         ),
     )
@@ -132,7 +133,7 @@ class MQTTBridgeConfigMap(BaseClientModel):
         default=False,
         client_data=ClientFieldData(
             prompt=lambda cm: (
-                "Enable/Disable autostart"
+                _("Enable/Disable autostart")
             ),
         ),
     )
@@ -146,7 +147,7 @@ class MarketDataCollectionConfigMap(BaseClientModel):
         default=False,
         client_data=ClientFieldData(
             prompt=lambda cm: (
-                "Enable/Disable Market Data Collection"
+                _("Enable/Disable Market Data Collection")
             ),
         ),
     )
@@ -155,7 +156,7 @@ class MarketDataCollectionConfigMap(BaseClientModel):
         ge=1,
         client_data=ClientFieldData(
             prompt=lambda cm: (
-                "Set the market data collection interval in seconds (Default=60)"
+                _("Set the market data collection interval in seconds (Default=60)")
             ),
         ),
     )
@@ -164,7 +165,7 @@ class MarketDataCollectionConfigMap(BaseClientModel):
         ge=2,
         client_data=ClientFieldData(
             prompt=lambda cm: (
-                "Set the order book collection depth (Default=20)"
+                _("Set the order book collection depth (Default=20)")
             ),
         ),
     )
@@ -177,13 +178,13 @@ class ColorConfigMap(BaseClientModel):
     top_pane: str = Field(
         default="#000000",
         client_data=ClientFieldData(
-            prompt=lambda cm: "What is the background color of the top pane?",
+            prompt=lambda cm: _("What is the background color of the top pane?"),
         ),
     )
     bottom_pane: str = Field(
         default="#000000",
         client_data=ClientFieldData(
-            prompt=lambda cm: "What is the background color of the bottom pane?",
+            prompt=lambda cm: _("What is the background color of the bottom pane?"),
         ),
     )
     output_pane: str = Field(
@@ -195,73 +196,73 @@ class ColorConfigMap(BaseClientModel):
     input_pane: str = Field(
         default="#1C1C1C",
         client_data=ClientFieldData(
-            prompt=lambda cm: "What is the background color of the input pane?",
+            prompt=lambda cm: _("What is the background color of the input pane?"),
         ),
     )
     logs_pane: str = Field(
         default="#121212",
         client_data=ClientFieldData(
-            prompt=lambda cm: "What is the background color of the logs pane?",
+            prompt=lambda cm: _("What is the background color of the logs pane?"),
         ),
     )
     terminal_primary: str = Field(
         default="#5FFFD7",
         client_data=ClientFieldData(
-            prompt=lambda cm: "What is the terminal primary color?",
+            prompt=lambda cm: _("What is the terminal primary color?"),
         ),
     )
     primary_label: str = Field(
         default="#5FFFD7",
         client_data=ClientFieldData(
-            prompt=lambda cm: "What is the background color for primary label?",
+            prompt=lambda cm: _("What is the background color for primary label?"),
         ),
     )
     secondary_label: str = Field(
         default="#FFFFFF",
         client_data=ClientFieldData(
-            prompt=lambda cm: "What is the background color for secondary label?",
+            prompt=lambda cm: _("What is the background color for secondary label?"),
         ),
     )
     success_label: str = Field(
         default="#5FFFD7",
         client_data=ClientFieldData(
-            prompt=lambda cm: "What is the background color for success label?",
+            prompt=lambda cm: _("What is the background color for success label?"),
         ),
     )
     warning_label: str = Field(
         default="#FFFF00",
         client_data=ClientFieldData(
-            prompt=lambda cm: "What is the background color for warning label?",
+            prompt=lambda cm: _("What is the background color for warning label?"),
         ),
     )
     info_label: str = Field(
         default="#5FD7FF",
         client_data=ClientFieldData(
-            prompt=lambda cm: "What is the background color for info label?",
+            prompt=lambda cm: _("What is the background color for info label?"),
         ),
     )
     error_label: str = Field(
         default="#FF0000",
         client_data=ClientFieldData(
-            prompt=lambda cm: "What is the background color for error label?",
+            prompt=lambda cm: _("What is the background color for error label?"),
         ),
     )
     gold_label: str = Field(
         default="#FFD700",
         client_data=ClientFieldData(
-            prompt=lambda cm: "What is the background color for gold label?",
+            prompt=lambda cm: _("What is the background color for gold label?"),
         ),
     )
     silver_label: str = Field(
         default="#C0C0C0",
         client_data=ClientFieldData(
-            prompt=lambda cm: "What is the background color for silver label?",
+            prompt=lambda cm: _("What is the background color for silver label?"),
         ),
     )
     bronze_label: str = Field(
         default="#CD7F32",
         client_data=ClientFieldData(
-            prompt=lambda cm: "What is the background color for bronze label?",
+            prompt=lambda cm: _("What is the background color for bronze label?"),
         ),
     )
 
@@ -285,7 +286,7 @@ class ColorConfigMap(BaseClientModel):
     )
     def validate_color(cls, v: str):
         if not re.search(r'^#(?:[0-9a-fA-F]{2}){3}$', v):
-            raise ValueError("Invalid color code")
+            raise ValueError(_("Invalid color code"))
         return v
 
 
@@ -311,8 +312,8 @@ class PaperTradeConfigMap(BaseClientModel):
         },
         client_data=ClientFieldData(
             prompt=lambda cm: (
-                "Enter paper trade balance settings (Input must be valid json — "
-                "e.g. {\"ETH\": 10, \"USDC\": 50000})"
+                _("Enter paper trade balance settings (Input must be valid json — "
+                  "e.g. {\"ETH\": 10, \"USDC\": 50000})")
             ),
         ),
     )
@@ -337,8 +338,8 @@ class KillSwitchEnabledMode(KillSwitchMode):
         le=Decimal(100),
         client_data=ClientFieldData(
             prompt=lambda cm: (
-                "At what profit/loss rate would you like the bot to stop?"
-                " (e.g. -5 equals 5 percent loss)"
+                _("At what profit/loss rate would you like the bot to stop?"
+                  " (e.g. -5 equals 5 percent loss)")
             ),
         ),
     )
@@ -386,11 +387,11 @@ class TelegramMode(BaseClientModel, ABC):
 class TelegramEnabledMode(TelegramMode):
     telegram_token: str = Field(
         default=...,
-        client_data=ClientFieldData(prompt=lambda cm: "What is your telegram token?"),
+        client_data=ClientFieldData(prompt=lambda cm: _("What is your telegram token?")),
     )
     telegram_chat_id: str = Field(
         default=...,
-        client_data=ClientFieldData(prompt=lambda cm: "What is your telegram chat id?"),
+        client_data=ClientFieldData(prompt=lambda cm: _("What is your telegram chat id?")),
     )
 
     class Config:
@@ -429,7 +430,7 @@ class DBSqliteMode(DBMode):
         const=True,
         client_data=ClientFieldData(
             prompt=lambda cm: (
-                "Please enter database engine you want to use (reference: https://docs.sqlalchemy.org/en/13/dialects/)"
+                _("Please enter database engine you want to use (reference: https://docs.sqlalchemy.org/en/13/dialects/)")
             ),
         ),
     )
@@ -446,38 +447,38 @@ class DBOtherMode(DBMode):
         default=...,
         client_data=ClientFieldData(
             prompt=lambda cm: (
-                "Please enter database engine you want to use (reference: https://docs.sqlalchemy.org/en/13/dialects/)"
+                _("Please enter database engine you want to use (reference: https://docs.sqlalchemy.org/en/13/dialects/)")
             ),
         ),
     )
     db_host: str = Field(
         default="127.0.0.1",
         client_data=ClientFieldData(
-            prompt=lambda cm: "Please enter your DB host address",
+            prompt=lambda cm: _("Please enter your DB host address"),
         ),
     )
     db_port: int = Field(
         default=3306,
         client_data=ClientFieldData(
-            prompt=lambda cm: "Please enter your DB port",
+            prompt=lambda cm: _("Please enter your DB port"),
         ),
     )
     db_username: str = Field(
         defaul="username",
         client_data=ClientFieldData(
-            prompt=lambda cm: "Please enter your DB username",
+            prompt=lambda cm: _("Please enter your DB username"),
         ),
     )
     db_password: str = Field(
         default="password",
         client_data=ClientFieldData(
-            prompt=lambda cm: "Please enter your DB password",
+            prompt=lambda cm: _("Please enter your DB password"),
         ),
     )
     db_name: str = Field(
         default="dbname",
         client_data=ClientFieldData(
-            prompt=lambda cm: "Please enter your the name of your DB",
+            prompt=lambda cm: _("Please enter your the name of your DB"),
         ),
     )
 
@@ -503,13 +504,13 @@ class GatewayConfigMap(BaseClientModel):
     gateway_api_host: str = Field(
         default="localhost",
         client_data=ClientFieldData(
-            prompt=lambda cm: "Please enter your Gateway API host",
+            prompt=lambda cm: _("Please enter your Gateway API host"),
         ),
     )
     gateway_api_port: str = Field(
         default="15888",
         client_data=ClientFieldData(
-            prompt=lambda cm: "Please enter your Gateway API port",
+            prompt=lambda cm: _("Please enter your Gateway API port"),
         ),
     )
 
@@ -522,14 +523,14 @@ class GlobalTokenConfigMap(BaseClientModel):
         default="USDT",
         client_data=ClientFieldData(
             prompt=lambda
-                cm: "What is your default display token? (e.g. USD,EUR,BTC)",
+                cm: _("What is your default display token? (e.g. USD,EUR,BTC)"),
         ),
     )
     global_token_symbol: str = Field(
         default="$",
         client_data=ClientFieldData(
             prompt=lambda
-                cm: "What is your default display token symbol? (e.g. $,€)",
+                cm: _("What is your default display token symbol? (e.g. $,€)"),
         ),
     )
 
@@ -558,7 +559,7 @@ class CommandsTimeoutConfigMap(BaseClientModel):
         gt=Decimal("0"),
         client_data=ClientFieldData(
             prompt=lambda cm: (
-                "Network timeout when fetching the minimum order amount in the create command (in seconds)"
+                _("Network timeout when fetching the minimum order amount in the create command (in seconds)")
             ),
         ),
     )
@@ -567,8 +568,8 @@ class CommandsTimeoutConfigMap(BaseClientModel):
         gt=Decimal("0"),
         client_data=ClientFieldData(
             prompt=lambda cm: (
-                "Network timeout to apply to the other commands' API calls"
-                " (i.e. import, connect, balance, history; in seconds)"
+                _("Network timeout to apply to the other commands' API calls"
+                  " (i.e. import, connect, balance, history; in seconds)")
             ),
         ),
     )
@@ -617,7 +618,7 @@ class AnonymizedMetricsEnabledMode(AnonymizedMetricsMode):
         default=Decimal("15"),
         gt=Decimal("0"),
         client_data=ClientFieldData(
-            prompt=lambda cm: "How often do you want to send the anonymized metrics (Enter 5 for 5 minutes)?",
+            prompt=lambda cm: _("How often do you want to send the anonymized metrics (Enter 5 for 5 minutes)?"),
         ),
     )
 
@@ -718,8 +719,8 @@ class CoinGeckoRateSourceMode(RateSourceModeBase):
         default=[],
         client_data=ClientFieldData(
             prompt=lambda cm: (
-                "List of comma-delimited CoinGecko token ids to always include"
-                " in CoinGecko rates query (e.g. frontier-token,pax-gold,rbtc — empty to skip)"
+                _("List of comma-delimited CoinGecko token ids to always include"
+                  " in CoinGecko rates query (e.g. frontier-token,pax-gold,rbtc — empty to skip)")
             ),
             prompt_on_new=True,
         )
@@ -756,25 +757,25 @@ class CoinCapRateSourceMode(RateSourceModeBase):
         default=",".join(
             [
                 ":".join(pair) for pair in {
-                    "BTC": "bitcoin",
-                    "ETH": "ethereum",
-                    "USDT": "tether",
-                    "CONV": "convergence",
-                    "FIRO": "zcoin",
-                    "BUSD": "binance-usd",
-                    "ONE": "harmony",
-                    "PDEX": "polkadex",
-                }.items()
+                "BTC": "bitcoin",
+                "ETH": "ethereum",
+                "USDT": "tether",
+                "CONV": "convergence",
+                "FIRO": "zcoin",
+                "BUSD": "binance-usd",
+                "ONE": "harmony",
+                "PDEX": "polkadex",
+            }.items()
             ]
         ),
         description=(
-            "The symbol-to-asset ID map for CoinCap. Assets IDs can be found by selecting a symbol"
-            " on https://coincap.io/ and extracting the last segment of the URL path."
+            _("The symbol-to-asset ID map for CoinCap. Assets IDs can be found by selecting a symbol"
+              " on https://coincap.io/ and extracting the last segment of the URL path.")
         ),
         client_data=ClientFieldData(
             prompt=lambda cm: (
-                "CoinCap symbol-to-asset ID map (e.g. 'BTC:bitcoin,ETH:ethereum', find IDs on https://coincap.io/"
-                " by selecting a symbol and extracting the last segment of the URL path)"
+                _("CoinCap symbol-to-asset ID map (e.g. 'BTC:bitcoin,ETH:ethereum', find IDs on https://coincap.io/"
+                  " by selecting a symbol and extracting the last segment of the URL path)")
             ),
             is_connect_key=True,
             prompt_on_new=True,
@@ -782,9 +783,9 @@ class CoinCapRateSourceMode(RateSourceModeBase):
     )
     api_key: SecretStr = Field(
         default=SecretStr(""),
-        description="API key to use to request information from CoinCap (if empty public requests will be used)",
+        description=_("API key to use to request information from CoinCap (if empty public requests will be used)"),
         client_data=ClientFieldData(
-            prompt=lambda cm: "CoinCap API key (optional, but improves rate limits)",
+            prompt=lambda cm: _("CoinCap API key (optional, but improves rate limits)"),
             is_secure=True,
             is_connect_key=True,
             prompt_on_new=True,
@@ -884,14 +885,14 @@ class ClientConfigMap(BaseClientModel):
     instance_id: str = Field(
         default=generate_client_id(),
         client_data=ClientFieldData(
-            prompt=lambda cm: "Instance UID of the bot",
+            prompt=lambda cm: _("Instance UID of the bot"),
         ),
     )
     fetch_pairs_from_all_exchanges: bool = Field(
         default=False,
-        description="Fetch trading pairs from all exchanges if True, otherwise fetch only from connected exchanges.",
+        description=_("Fetch trading pairs from all exchanges if True, otherwise fetch only from connected exchanges."),
         client_data=ClientFieldData(
-            prompt=lambda cm: "Would you like to fetch from all exchanges? (True/False)",
+            prompt=lambda cm: _("Would you like to fetch from all exchanges? (True/False)"),
         ),
     )
     log_level: str = Field(default="INFO")
@@ -903,60 +904,78 @@ class ClientConfigMap(BaseClientModel):
     log_file_path: Path = Field(
         default=DEFAULT_LOG_FILE_PATH,
         client_data=ClientFieldData(
-            prompt=lambda cm: f"Where would you like to save your logs? (default '{DEFAULT_LOG_FILE_PATH}')",
+            prompt=lambda cm: _("Where would you like to save your logs? (default '{DEFAULT_LOG_FILE_PATH}')").format(
+                DEFAULT_LOG_FILE_PATH=DEFAULT_LOG_FILE_PATH
+            ),
         ),
     )
     kill_switch_mode: Union[tuple(KILL_SWITCH_MODES.values())] = Field(
         default=KillSwitchDisabledMode(),
         client_data=ClientFieldData(
-            prompt=lambda cm: f"Select your kill-switch mode ({'/'.join(list(KILL_SWITCH_MODES.keys()))})",
+            # prompt=lambda cm: f"Select your kill-switch mode ({'/'.join(list(KILL_SWITCH_MODES.keys()))})",
+            prompt=lambda cm: _("Select your kill-switch mode ({KILL_SWITCH_MODES})").format(
+                KILL_SWITCH_MODES=", ".join(list(KILL_SWITCH_MODES.keys()))
+            ),
         ),
     )
     autofill_import: AutofillImportEnum = Field(
         default=AutofillImportEnum.disabled,
-        description="What to auto-fill in the prompt after each import command (start/config)",
+        description=_("What to auto-fill in the prompt after each import command (start/config)"),
         client_data=ClientFieldData(
             prompt=lambda cm: (
-                f"What to auto-fill in the prompt after each import command? ({'/'.join(list(AutofillImportEnum))})"
+                # f"What to auto-fill in the prompt after each import command? ({'/'.join(list(AutofillImportEnum))})"
+                _("What to auto-fill in the prompt after each import command? ({AutofillImportEnum})").format(
+                    AutofillImportEnum=", ".join(list(AutofillImportEnum))
+                )
             ),
         )
     )
     telegram_mode: Union[tuple(TELEGRAM_MODES.values())] = Field(
         default=TelegramDisabledMode(),
         client_data=ClientFieldData(
-            prompt=lambda cm: f"Select the desired telegram mode ({'/'.join(list(TELEGRAM_MODES.keys()))})"
+            # prompt=lambda cm: f"Select the desired telegram mode ({'/'.join(list(TELEGRAM_MODES.keys()))})"
+            prompt=lambda cm: _("Select the desired telegram mode ({TELEGRAM_MODES})").format(
+                TELEGRAM_MODES=", ".join(list(TELEGRAM_MODES.keys()))
+            )
         )
     )
     mqtt_bridge: MQTTBridgeConfigMap = Field(
         default=MQTTBridgeConfigMap(),
-        description=('MQTT Bridge configuration.'),
+        # description=('MQTT Bridge configuration.'),
+        description=_("MQTT Bridge configuration."),
     )
     send_error_logs: bool = Field(
         default=True,
-        description="Error log sharing",
+        # description="Error log sharing",
+        description=_("Error log sharing"),
         client_data=ClientFieldData(
-            prompt=lambda cm: "Would you like to send error logs to hummingbot? (Yes/No)",
+            # prompt=lambda cm: "Would you like to send error logs to hummingbot? (Yes/No)",
+            prompt=lambda cm: _("Would you like to send error logs to hummingbot? (Yes/No)"),
         ),
     )
     previous_strategy: Optional[str] = Field(
         default=None,
-        description="Can store the previous strategy ran for quick retrieval."
+        # description="Can store the previous strategy ran for quick retrieval."
+        description=_("Can store the previous strategy ran for quick retrieval.")
     )
     db_mode: Union[tuple(DB_MODES.values())] = Field(
         default=DBSqliteMode(),
-        description=("Advanced database options, currently supports SQLAlchemy's included dialects"
+        description=_("Advanced database options, currently supports SQLAlchemy's included dialects"
                      "\nReference: https://docs.sqlalchemy.org/en/13/dialects/"
                      "\nTo use an instance of SQLite DB the required configuration is \n  db_engine: sqlite"
                      "\nTo use a DBMS the required configuration is"
                      "\n  db_host: 127.0.0.1\n  db_port: 3306\n  db_username: username\n  db_password: password"
                      "\n  db_name: dbname"),
         client_data=ClientFieldData(
-            prompt=lambda cm: f"Select the desired db mode ({'/'.join(list(DB_MODES.keys()))})",
+            # prompt=lambda cm: f"Select the desired db mode ({'/'.join(list(DB_MODES.keys()))})",
+            prompt=lambda cm: _("Select the desired db mode ({DB_MODES})").format(
+                DB_MODES=", ".join(list(DB_MODES.keys()))
+            )
         ),
     )
     balance_asset_limit: Dict[str, Dict[str, Decimal]] = Field(
         default={exchange: {} for exchange in AllConnectorSettings.get_exchange_names()},
-        description=("Balance Limit Configurations"
+        description=_("Balance Limit Configurations"
                      "\ne.g. Setting USDT and BTC limits on Binance."
                      "\nbalance_asset_limit:"
                      "\n  binance:"
@@ -964,75 +983,106 @@ class ClientConfigMap(BaseClientModel):
                      "\n    USDT: 1000"),
         client_data=ClientFieldData(
             prompt=lambda cm: (
-                "Use the `balance limit` command e.g. balance limit [EXCHANGE] [ASSET] [AMOUNT]"
+                # "Use the `balance limit` command e.g. balance limit [EXCHANGE] [ASSET] [AMOUNT]"
+                _("Use the `balance limit` command e.g. balance limit [EXCHANGE] [ASSET] [AMOUNT]")
             ),
         ),
     )
     manual_gas_price: Decimal = Field(
         default=Decimal("50"),
-        description="Fixed gas price (in Gwei) for Ethereum transactions",
+        # description="Fixed gas price (in Gwei) for Ethereum transactions",
+        description=_("Fixed gas price (in Gwei) for Ethereum transactions"),
         gt=Decimal("0"),
         client_data=ClientFieldData(
-            prompt=lambda cm: "Enter fixed gas price (in Gwei) you want to use for Ethereum transactions",
+            # prompt=lambda cm: "Enter fixed gas price (in Gwei) you want to use for Ethereum transactions",
+            prompt=lambda cm: _("Enter fixed gas price (in Gwei) you want to use for Ethereum transactions"),
         ),
     )
     gateway: GatewayConfigMap = Field(
         default=GatewayConfigMap(),
-        description=("Gateway API Configurations"
-                     "\ndefault host to only use localhost"
-                     "\nPort need to match the final installation port for Gateway"),
+        # description=("Gateway API Configurations"
+        #              "\ndefault host to only use localhost"
+        #              "\nPort need to match the final installation port for Gateway"),
+        description=_(
+            "Gateway API Configurations default host to only use localhost Port need to match the final installation port for Gateway"),
     )
     certs_path: Path = Field(
         default=DEFAULT_GATEWAY_CERTS_PATH,
         client_data=ClientFieldData(
-            prompt=lambda cm: f"Where would you like to save certificates that connect your bot to Gateway? (default '{DEFAULT_GATEWAY_CERTS_PATH}')",
+            # prompt=lambda
+            #     cm: f"Where would you like to save certificates that connect your bot to Gateway? (default '{DEFAULT_GATEWAY_CERTS_PATH}')",
+            prompt=lambda
+                cm: _(
+                "Where would you like to save certificates that connect your bot to Gateway? (default '{DEFAULT_GATEWAY_CERTS_PATH}')").format(
+                DEFAULT_GATEWAY_CERTS_PATH=DEFAULT_GATEWAY_CERTS_PATH
+            ),
         ),
     )
 
     anonymized_metrics_mode: Union[tuple(METRICS_MODES.values())] = Field(
         default=AnonymizedMetricsEnabledMode(),
-        description="Whether to enable aggregated order and trade data collection",
+        # description="Whether to enable aggregated order and trade data collection",
+        description=_("Whether to enable aggregated order and trade data collection"),
         client_data=ClientFieldData(
-            prompt=lambda cm: f"Select the desired metrics mode ({'/'.join(list(METRICS_MODES.keys()))})",
+            # prompt=lambda cm: f"Select the desired metrics mode ({'/'.join(list(METRICS_MODES.keys()))})",
+            prompt=lambda cm: _("Select the desired metrics mode ({METRICS_MODES})").format(
+                METRICS_MODES=", ".join(list(METRICS_MODES.keys()))
+            )
         ),
     )
     command_shortcuts: List[CommandShortcutModel] = Field(
         default=[
             CommandShortcutModel(
                 command="spreads",
-                help="Set bid and ask spread",
+                # help="Set bid and ask spread",
+                help=_("Set bid and ask spread"),
                 arguments=["Bid Spread", "Ask Spread"],
                 output=["config bid_spread $1", "config ask_spread $2"]
             )
         ],
-        description=("Command Shortcuts"
-                     "\nDefine abbreviations for often used commands"
-                     "\nor batch grouped commands together"),
+        # description=("Command Shortcuts"
+        #              "\nDefine abbreviations for often used commands"
+        #              "\nor batch grouped commands together"),
+        description=_(
+            "Command Shortcuts Define abbreviations for often used commands or batch grouped commands together"),
     )
     rate_oracle_source: Union[tuple(RATE_SOURCE_MODES.values())] = Field(
         default=BinanceRateSourceMode(),
-        description=f"A source for rate oracle, currently {', '.join(RATE_SOURCE_MODES.keys())}",
+        # description=f"A source for rate oracle, currently {', '.join(RATE_SOURCE_MODES.keys())}",
+        description=_("A source for rate oracle, currently {RATE_SOURCE_MODES}").format(
+            RATE_SOURCE_MODES=", ".join(RATE_SOURCE_MODES.keys())
+        ),
         client_data=ClientFieldData(
             prompt=lambda cm: (
-                f"What source do you want rate oracle to pull data from? ({'/'.join(RATE_SOURCE_MODES.keys())})"
+                # f"What source do you want rate oracle to pull data from? ({'/'.join(RATE_SOURCE_MODES.keys())})"
+                _("What source do you want rate oracle to pull data from? ({RATE_SOURCE_MODES})").format(
+                    RATE_SOURCE_MODES="/".join(RATE_SOURCE_MODES.keys())
+                )
             ),
         ),
     )
     global_token: GlobalTokenConfigMap = Field(
         default=GlobalTokenConfigMap(),
-        description="A universal token which to display tokens values in, e.g. USD,EUR,BTC"
+        # description="A universal token which to display tokens values in, e.g. USD,EUR,BTC"
+        description=_("A universal token which to display tokens values in, e.g. USD,EUR,BTC")
     )
     rate_limits_share_pct: Decimal = Field(
         default=Decimal("100"),
-        description=("Percentage of API rate limits (on any exchange and any end point) allocated to this bot instance."
-                     "\nEnter 50 to indicate 50%. E.g. if the API rate limit is 100 calls per second, and you allocate "
-                     "\n50% to this setting, the bot will have a maximum (limit) of 50 calls per second"),
+        # description=("Percentage of API rate limits (on any exchange and any end point) allocated to this bot instance."
+        #              "\nEnter 50 to indicate 50%. E.g. if the API rate limit is 100 calls per second, and you allocate "
+        #              "\n50% to this setting, the bot will have a maximum (limit) of 50 calls per second"),
+        description=_(
+            "Percentage of API rate limits (on any exchange and any end point) allocated to this bot instance."
+            " Enter 50 to indicate 50%. E.g. if the API rate limit is 100 calls per second, and you allocate "
+            " 50% to this setting, the bot will have a maximum (limit) of 50 calls per second"
+        ),
         gt=Decimal("0"),
         le=Decimal("100"),
         client_data=ClientFieldData(
             prompt=lambda cm: (
-                "What percentage of API rate limits do you want to allocate to this bot instance?"
-                " (Enter 50 to indicate 50%)"
+                # "What percentage of API rate limits do you want to allocate to this bot instance?"
+                # " (Enter 50 to indicate 50%)"
+                _("What percentage of API rate limits do you want to allocate to this bot instance? Enter 50 to indicate 50%")
             ),
         ),
     )
@@ -1043,11 +1093,11 @@ class ClientConfigMap(BaseClientModel):
         type=str,
     ) = Field(
         default="psql",
-        description="Tabulate table format style (https://github.com/astanin/python-tabulate#table-format)",
+        description=_("Tabulate table format style (https://github.com/astanin/python-tabulate#table-format)"),
         client_data=ClientFieldData(
             prompt=lambda cm: (
-                "What tabulate formatting to apply to the tables?"
-                " [https://github.com/astanin/python-tabulate#table-format]"
+                _("What tabulate formatting to apply to the tables?"
+                " [https://github.com/astanin/python-tabulate#table-format]")
             ),
         ),
     )
@@ -1056,12 +1106,12 @@ class ClientConfigMap(BaseClientModel):
     tick_size: float = Field(
         default=1.0,
         ge=0.1,
-        description="The tick size is the frequency with which the clock notifies the time iterators by calling the"
+        description=_("The tick size is the frequency with which the clock notifies the time iterators by calling the"
                     "\nc_tick() method, that means for example that if the tick size is 1, the logic of the strategy"
-                    " \nwill run every second.",
+                    " \nwill run every second."),
         client_data=ClientFieldData(
             prompt=lambda cm: (
-                "What tick size (in seconds) do you want to use? (Enter 0.5 to indicate 0.5 seconds)"
+                _("What tick size (in seconds) do you want to use? (Enter 0.5 to indicate 0.5 seconds)")
             ),
         ),
     )
@@ -1076,7 +1126,10 @@ class ClientConfigMap(BaseClientModel):
             sub_model = v
         elif v not in KILL_SWITCH_MODES:
             raise ValueError(
-                f"Invalid kill switch mode, please choose a value from {list(KILL_SWITCH_MODES.keys())}."
+                # f"Invalid kill switch mode, please choose a value from {list(KILL_SWITCH_MODES.keys())}."
+                _("Invalid kill switch mode, please choose a value from {KILL_SWITCH_MODES}.").format(
+                    KILL_SWITCH_MODES=", ".join(list(KILL_SWITCH_MODES.keys()))
+                )
             )
         else:
             sub_model = KILL_SWITCH_MODES[v].construct()
@@ -1085,7 +1138,10 @@ class ClientConfigMap(BaseClientModel):
     @validator("autofill_import", pre=True)
     def validate_autofill_import(cls, v: Union[str, AutofillImportEnum]):
         if isinstance(v, str) and v not in AutofillImportEnum.__members__:
-            raise ValueError(f"The value must be one of {', '.join(list(AutofillImportEnum))}.")
+            # raise ValueError(f"The value must be one of {', '.join(list(AutofillImportEnum))}.")
+            raise ValueError(_("The value must be one of {AutofillImportEnum}.").format(
+                AutofillImportEnum=", ".join(list(AutofillImportEnum))
+            ))
         return v
 
     @validator("telegram_mode", pre=True)
@@ -1094,7 +1150,10 @@ class ClientConfigMap(BaseClientModel):
             sub_model = v
         elif v not in TELEGRAM_MODES:
             raise ValueError(
-                f"Invalid telegram mode, please choose a value from {list(TELEGRAM_MODES.keys())}."
+                # f"Invalid telegram mode, please choose a value from {list(TELEGRAM_MODES.keys())}."
+                _("Invalid telegram mode, please choose a value from {TELEGRAM_MODES}.").format(
+                    TELEGRAM_MODES=", ".join(list(TELEGRAM_MODES.keys()))
+                )
             )
         else:
             sub_model = TELEGRAM_MODES[v].construct()
@@ -1115,7 +1174,10 @@ class ClientConfigMap(BaseClientModel):
             sub_model = v
         elif v not in DB_MODES:
             raise ValueError(
-                f"Invalid DB mode, please choose a value from {list(DB_MODES.keys())}."
+                # f"Invalid DB mode, please choose a value from {list(DB_MODES.keys())}."
+                _("Invalid DB mode, please choose a value from {DB_MODES}.").format(
+                    DB_MODES=", ".join(list(DB_MODES.keys()))
+                )
             )
         else:
             sub_model = DB_MODES[v].construct()
@@ -1127,7 +1189,10 @@ class ClientConfigMap(BaseClientModel):
             sub_model = v
         elif v not in METRICS_MODES:
             raise ValueError(
-                f"Invalid metrics mode, please choose a value from {list(METRICS_MODES.keys())}."
+                # f"Invalid metrics mode, please choose a value from {list(METRICS_MODES.keys())}."
+                _("Invalid metrics mode, please choose a value from {METRICS_MODES}.").format(
+                    METRICS_MODES=", ".join(list(METRICS_MODES.keys()))
+                )
             )
         else:
             sub_model = METRICS_MODES[v].construct()
@@ -1139,7 +1204,10 @@ class ClientConfigMap(BaseClientModel):
             sub_model = v
         elif v not in RATE_SOURCE_MODES:
             raise ValueError(
-                f"Invalid rate source, please choose a value from {list(RATE_SOURCE_MODES.keys())}."
+                # f"Invalid rate source, please choose a value from {list(RATE_SOURCE_MODES.keys())}."
+                _("Invalid rate source, please choose a value from {RATE_SOURCE_MODES}.").format(
+                    RATE_SOURCE_MODES=", ".join(list(RATE_SOURCE_MODES.keys()))
+                )
             )
         else:
             sub_model = RATE_SOURCE_MODES[v].construct()
@@ -1149,7 +1217,8 @@ class ClientConfigMap(BaseClientModel):
     def validate_tables_format(cls, v: str):
         """Used for client-friendly error output."""
         if v not in tabulate_formats:
-            raise ValueError("Invalid table format.")
+            # raise ValueError("Invalid table format.")
+            raise ValueError(_("Invalid table format."))
         return v
 
     @validator(

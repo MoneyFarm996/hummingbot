@@ -37,9 +37,9 @@ class SimplePMM(ScriptStrategyBase):
     Design Template: https://hummingbot-foundation.notion.site/Simple-PMM-63cc765486dd42228d3da0b32537fc92
     Video: -
     Description:
-    The bot will place two orders around the price_source (mid price or last traded price) in a trading_pair on
-    exchange, with a distance defined by the ask_spread and bid_spread. Every order_refresh_time in seconds,
-    the bot will cancel and replace the orders.
+    机器人将围绕交易对中的 Price_source（中间价格或最后交易价格）下两个订单
+    交换，距离由ask_spread和bid_spread定义。每个 order_refresh_time 以秒为单位，
+    机器人将取消并替换订单.
     """
 
     create_timestamp = 0
@@ -55,6 +55,10 @@ class SimplePMM(ScriptStrategyBase):
         self.config = config
 
     def on_tick(self):
+        """
+        每次调用都会检查是否需要创建新订单, 如果需要, 则创建新订单, 并将创建时间戳更新为当前时间戳加上订单刷新时间
+        :return:
+        """
         if self.create_timestamp <= self.current_timestamp:
             self.cancel_all_orders()
             proposal: List[OrderCandidate] = self.create_proposal()
@@ -63,6 +67,11 @@ class SimplePMM(ScriptStrategyBase):
             self.create_timestamp = self.config.order_refresh_time + self.current_timestamp
 
     def create_proposal(self) -> List[OrderCandidate]:
+        """
+        创建订单提案
+        :return:  订单提案
+        :return:
+        """
         ref_price = self.connectors[self.config.exchange].get_price_by_type(self.config.trading_pair, self.price_source)
         buy_price = ref_price * Decimal(1 - self.config.bid_spread)
         sell_price = ref_price * Decimal(1 + self.config.ask_spread)
@@ -76,14 +85,29 @@ class SimplePMM(ScriptStrategyBase):
         return [buy_order, sell_order]
 
     def adjust_proposal_to_budget(self, proposal: List[OrderCandidate]) -> List[OrderCandidate]:
+        """
+        调整提案以符合预算
+        :param proposal:  订单提案
+        :return:  调整后的订单提案
+        """
         proposal_adjusted = self.connectors[self.config.exchange].budget_checker.adjust_candidates(proposal, all_or_none=True)
         return proposal_adjusted
 
     def place_orders(self, proposal: List[OrderCandidate]) -> None:
+        """
+        下单
+        :param proposal:
+        """
         for order in proposal:
             self.place_order(connector_name=self.config.exchange, order=order)
 
     def place_order(self, connector_name: str, order: OrderCandidate):
+        """
+        在指定的交易所上下单
+        :param connector_name:  交易所名称
+        :param order:  订单
+        :return:  None
+        """
         if order.order_side == TradeType.SELL:
             self.sell(connector_name=connector_name, trading_pair=order.trading_pair, amount=order.amount,
                       order_type=order.order_type, price=order.price)
@@ -96,6 +120,6 @@ class SimplePMM(ScriptStrategyBase):
             self.cancel(self.config.exchange, order.trading_pair, order.client_order_id)
 
     def did_fill_order(self, event: OrderFilledEvent):
-        msg = (f"{event.trade_type.name} {round(event.amount, 2)} {event.trading_pair} {self.config.exchange} at {round(event.price, 2)}")
+        msg = f"{event.trade_type.name} {round(event.amount, 2)} {event.trading_pair} {self.config.exchange} at {round(event.price, 2)}"
         self.log_with_clock(logging.INFO, msg)
         self.notify_hb_app_with_timestamp(msg)

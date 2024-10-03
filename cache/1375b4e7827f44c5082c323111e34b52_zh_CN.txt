@@ -1,0 +1,2 @@
+使用哪种价格类型？ 
+(mid_price/last_price/last_own_trade_price/best_bid/best_ask) >>>

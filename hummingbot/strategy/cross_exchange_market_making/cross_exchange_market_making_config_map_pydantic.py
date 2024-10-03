@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field, root_validator, validator
 import hummingbot.client.settings as settings
 from hummingbot.client.config.config_data_types import BaseClientModel, ClientConfigEnum, ClientFieldData
 from hummingbot.client.config.config_validators import validate_bool, validate_connector
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.client.config.strategy_config_data_types import BaseTradingStrategyMakerTakerConfigMap
 from hummingbot.client.settings import AllConnectorSettings
 from hummingbot.core.data_type.trade_fee import TokenAmount
@@ -17,7 +18,7 @@ from hummingbot.strategy.maker_taker_market_pair import MakerTakerMarketPair
 class ConversionRateModel(BaseClientModel, ABC):
     @abstractmethod
     def get_conversion_rates(
-        self, market_pair: MakerTakerMarketPair
+            self, market_pair: MakerTakerMarketPair
     ) -> Tuple[str, str, Decimal, str, str, Decimal]:
         pass
 
@@ -27,7 +28,7 @@ class OracleConversionRateMode(ConversionRateModel):
         title = "rate_oracle_conversion_rate"
 
     def get_conversion_rates(
-        self, market_pair: MakerTakerMarketPair
+            self, market_pair: MakerTakerMarketPair
     ) -> Tuple[str, str, Decimal, str, str, Decimal]:
         """
         Find conversion rates from taker market to maker market
@@ -72,39 +73,41 @@ class OracleConversionRateMode(ConversionRateModel):
 class TakerToMakerConversionRateMode(ConversionRateModel):
     taker_to_maker_base_conversion_rate: Decimal = Field(
         default=Decimal("1.0"),
-        description="A fixed conversion rate between the maker and taker trading pairs based on the maker base asset.",
+        description=_(
+            "A fixed conversion rate between the maker and taker trading pairs based on the maker base asset."),
         gt=0.0,
         client_data=ClientFieldData(
             prompt=lambda mi: (
-                "Enter conversion rate for taker base asset value to maker base asset value, e.g. "
-                "if maker base asset is USD and the taker is DAI, 1 DAI is valued at 1.25 USD, "
-                "the conversion rate is 1.25"
+                _("Enter conversion rate for taker base asset value to maker base asset value, e.g. "
+                  "if maker base asset is USD and the taker is DAI, 1 DAI is valued at 1.25 USD, "
+                  "the conversion rate is 1.25")
             ),
             prompt_on_new=True,
         ),
     )
     taker_to_maker_quote_conversion_rate: Decimal = Field(
         default=Decimal("1.0"),
-        description="A fixed conversion rate between the maker and taker trading pairs based on the maker quote asset.",
+        description=_(
+            "A fixed conversion rate between the maker and taker trading pairs based on the maker quote asset."),
         gt=0.0,
         client_data=ClientFieldData(
             prompt=lambda mi: (
-                "Enter conversion rate for taker quote asset value to maker quote asset value, e.g. "
-                "if maker quote asset is USD and the taker is DAI, 1 DAI is valued at 1.25 USD, "
-                "the conversion rate is 1.25"
+                _("Enter conversion rate for taker quote asset value to maker quote asset value, e.g. "
+                  "if maker quote asset is USD and the taker is DAI, 1 DAI is valued at 1.25 USD, "
+                  "the conversion rate is 1.25")
             ),
             prompt_on_new=True,
         ),
     )
     gas_to_maker_base_conversion_rate: Decimal = Field(
         default=Decimal("1.0"),
-        description="A fixed conversion rate between the maker quote asset and taker gas asset.",
+        description=_("A fixed conversion rate between the maker quote asset and taker gas asset."),
         gt=0.0,
         client_data=ClientFieldData(
             prompt=lambda mi: (
-                "Enter conversion rate for gas token value of taker gateway exchange to maker base asset value, e.g. "
-                "if maker base asset is USD and the gas token is DAI, 1 DAI is valued at 1.25 USD, "
-                "the conversion rate is 1.25"
+                _("Enter conversion rate for gas token value of taker gateway exchange to maker base asset value, e.g. "
+                  "if maker base asset is USD and the gas token is DAI, 1 DAI is valued at 1.25 USD, "
+                  "the conversion rate is 1.25")
             ),
             prompt_on_new=True,
         ),
@@ -114,7 +117,7 @@ class TakerToMakerConversionRateMode(ConversionRateModel):
         title = "fixed_conversion_rate"
 
     def get_conversion_rates(
-        self, market_pair: MakerTakerMarketPair
+            self, market_pair: MakerTakerMarketPair
     ) -> Tuple[str, str, Decimal, str, str, Decimal]:
         """
         Find conversion rates from taker market to maker market
@@ -172,21 +175,21 @@ class OrderRefreshMode(BaseClientModel, ABC):
 class PassiveOrderRefreshMode(OrderRefreshMode):
     cancel_order_threshold: Decimal = Field(
         default=Decimal("5.0"),
-        description="Profitability threshold to cancel a trade.",
+        description=_("Profitability threshold to cancel a trade."),
         gt=-100.0,
         lt=100.0,
         client_data=ClientFieldData(
-            prompt=lambda mi: "What is the threshold of profitability to cancel a trade? (Enter 1 to indicate 1%)",
+            prompt=lambda mi: _("What is the threshold of profitability to cancel a trade? (Enter 1 to indicate 1%)"),
             prompt_on_new=True,
         ),
     )
 
     limit_order_min_expiration: Decimal = Field(
         default=130.0,
-        description="Limit order expiration time limit.",
+        description=_("Limit order expiration time limit."),
         gt=0.0,
         client_data=ClientFieldData(
-            prompt=lambda mi: "How often do you want limit orders to expire (in seconds)?",
+            prompt=lambda mi: _("How often do you want limit orders to expire (in seconds)?"),
             prompt_on_new=True,
         ),
     )
@@ -231,17 +234,17 @@ class CrossExchangeMarketMakingConfigMap(BaseTradingStrategyMakerTakerConfigMap)
 
     min_profitability: Decimal = Field(
         default=...,
-        description="The minimum estimated profitability required to open a position.",
+        description=_("The minimum estimated profitability required to open a position."),
         ge=-100.0,
         le=100.0,
         client_data=ClientFieldData(
-            prompt=lambda mi: "What is the minimum profitability for you to make a trade? (Enter 1 to indicate 1%)",
+            prompt=lambda mi: _("What is the minimum profitability for you to make a trade? (Enter 1 to indicate 1%)"),
             prompt_on_new=True,
         ),
     )
     order_amount: Decimal = Field(
         default=...,
-        description="The strategy order amount.",
+        description=_("The strategy order amount."),
         ge=0.0,
         client_data=ClientFieldData(
             prompt=lambda mi: CrossExchangeMarketMakingConfigMap.order_amount_prompt(mi),
@@ -250,14 +253,14 @@ class CrossExchangeMarketMakingConfigMap(BaseTradingStrategyMakerTakerConfigMap)
     )
     adjust_order_enabled: bool = Field(
         default=True,
-        description="Adjust order price to be one tick above the top bid or below the top ask.",
+        description=_("Adjust order price to be one tick above the top bid or below the top ask."),
         client_data=ClientFieldData(
-            prompt=lambda mi: "Do you want to enable adjust order? (Yes/No)"
+            prompt=lambda mi: _("Do you want to enable adjust order? (Yes/No)")
         ),
     )
     order_refresh_mode: Union[ActiveOrderRefreshMode, PassiveOrderRefreshMode] = Field(
         default=ActiveOrderRefreshMode.construct(),
-        description="Refresh orders by cancellation or by letting them expire.",
+        description=_("Refresh orders by cancellation or by letting them expire."),
         client_data=ClientFieldData(
             prompt=lambda mi: f"Select the order refresh mode ({'/'.join(list(ORDER_REFRESH_MODELS.keys()))})",
             prompt_on_new=True,
@@ -265,7 +268,7 @@ class CrossExchangeMarketMakingConfigMap(BaseTradingStrategyMakerTakerConfigMap)
     )
     top_depth_tolerance: Decimal = Field(
         default=Decimal("0.0"),
-        description="Volume requirement for determining a possible top bid or ask price from the order book.",
+        description=_("Volume requirement for determining a possible top bid or ask price from the order book."),
         ge=0.0,
         client_data=ClientFieldData(
             prompt=lambda mi: CrossExchangeMarketMakingConfigMap.top_depth_tolerance_prompt(mi),
@@ -273,65 +276,68 @@ class CrossExchangeMarketMakingConfigMap(BaseTradingStrategyMakerTakerConfigMap)
     )
     anti_hysteresis_duration: float = Field(
         default=60.0,
-        description="Minimum time limit between two subsequent order adjustments.",
+        description=_("Minimum time limit between two subsequent order adjustments."),
         gt=0.0,
         client_data=ClientFieldData(
-            prompt=lambda mi: "What is the minimum time interval you want limit orders to be adjusted? (in seconds)",
+            prompt=lambda mi: _("What is the minimum time interval you want limit orders to be adjusted? (in seconds)"),
         ),
     )
     order_size_taker_volume_factor: Decimal = Field(
         default=Decimal("25.0"),
-        description="Taker order size as a percentage of volume.",
+        description=_("Taker order size as a percentage of volume."),
         ge=0.0,
         le=100.0,
         client_data=ClientFieldData(
             prompt=lambda mi: (
-                "What percentage of hedge-able volume would you like to be traded on the taker market? "
-                "(Enter 1 to indicate 1%)"
+                _("What percentage of hedge-able volume would you like to be traded on the taker market? "
+                  "(Enter 1 to indicate 1%)")
             ),
         ),
     )
     order_size_taker_balance_factor: Decimal = Field(
         default=Decimal("99.5"),
-        description="Taker order size as a percentage of the available balance.",
+        description=_("Taker order size as a percentage of the available balance."),
         ge=0.0,
         le=100.0,
         client_data=ClientFieldData(
             prompt=lambda mi: (
-                "What percentage of asset balance would you like to use for hedging trades on the taker market? "
-                "(Enter 1 to indicate 1%)"
+                _("What percentage of asset balance would you like to use for hedging trades on the taker market? "
+                  "(Enter 1 to indicate 1%)")
             ),
         ),
     )
     order_size_portfolio_ratio_limit: Decimal = Field(
         default=Decimal("16.67"),
-        description="Order size as a maker and taker account balance ratio.",
+        description=_("Order size as a maker and taker account balance ratio."),
         ge=0.0,
         le=100.0,
         client_data=ClientFieldData(
             prompt=lambda mi: (
-                "What ratio of your total portfolio value would you like to trade on the maker and taker markets? "
-                "Enter 50 for 50%"
+                _("What ratio of your total portfolio value would you like to trade on the maker and taker markets? "
+                  "Enter 50 for 50%")
             ),
         ),
     )
     conversion_rate_mode: Union[OracleConversionRateMode, TakerToMakerConversionRateMode] = Field(
         default=OracleConversionRateMode.construct(),
-        description="Convert between different trading pairs using fixed conversion rates or using the rate oracle.",
+        description=_("Convert between different trading pairs using fixed conversion rates or using the rate oracle."),
         client_data=ClientFieldData(
-            prompt=lambda mi: f"Select the conversion rate mode ({'/'.join(list(CONVERSION_RATE_MODELS.keys()))})",
+            # prompt=lambda mi: f"Select the conversion rate mode ({'/'.join(list(CONVERSION_RATE_MODELS.keys()))})",
+            prompt=lambda mi: _("Select the conversion rate mode ({conversion_rate_modes})").format(
+                conversion_rate_modes="/".join(list(CONVERSION_RATE_MODELS.keys()))
+            ),
             prompt_on_new=True,
         ),
     )
     slippage_buffer: Decimal = Field(
         default=Decimal("5.0"),
-        description="Allowed slippage to fill ensure taker orders are filled.",
+        description=_("Allowed slippage to fill ensure taker orders are filled."),
         ge=0.0,
         le=100.0,
         client_data=ClientFieldData(
             prompt=lambda mi: (
-                "How much buffer do you want to add to the price to account for slippage for taker orders "
-                "Enter 1 to indicate 1%"
+                _("How much buffer do you want to add to the price to account for slippage for taker orders "
+                  "Enter 1 to indicate 1%")
             ),
             prompt_on_new=True,
         ),
@@ -339,22 +345,22 @@ class CrossExchangeMarketMakingConfigMap(BaseTradingStrategyMakerTakerConfigMap)
 
     debug_price_shim: bool = Field(
         default=False,
-        description="Usd the debug price shim to mock gateway price.",
+        description=_("Usd the debug price shim to mock gateway price."),
         client_data=ClientFieldData(
             prompt=lambda mi: (
-                "Do you want to enable the debug price shim for integration tests? If you don't know what this does "
-                "you should keep it disabled."
+                _("Do you want to enable the debug price shim for integration tests? If you don't know what this does "
+                  "you should keep it disabled.")
             ),
         ),
     )
     gateway_transaction_cancel_interval: int = Field(
-        default= 600,
-        description="Gateway transaction cancellation timeout.",
+        default=600,
+        description=_("Gateway transaction cancellation timeout."),
         ge=1,
         client_data=ClientFieldData(
             prompt=lambda mi: (
-                "After what time should blockchain transactions be cancelled if they are not included in a block? "
-                "(this only affects decentralized exchanges) (Enter time in seconds)"
+                _("After what time should blockchain transactions be cancelled if they are not included in a block? "
+                  "(this only affects decentralized exchanges) (Enter time in seconds)")
             ),
             prompt_on_new=True,
         ),
@@ -368,9 +374,9 @@ class CrossExchangeMarketMakingConfigMap(BaseTradingStrategyMakerTakerConfigMap)
         type=str,
     ) = Field(
         default=...,
-        description="The name of the taker exchange connector.",
+        description=_("The name of the taker exchange connector."),
         client_data=ClientFieldData(
-            prompt=lambda mi: "Enter your taker connector (Exchange/AMM/CLOB)",
+            prompt=lambda mi: _("Enter your taker connector (Exchange/AMM/CLOB)"),
             prompt_on_new=True,
         ),
     )
@@ -381,13 +387,15 @@ class CrossExchangeMarketMakingConfigMap(BaseTradingStrategyMakerTakerConfigMap)
     def top_depth_tolerance_prompt(cls, model_instance: 'CrossExchangeMarketMakingConfigMap') -> str:
         maker_market = model_instance.maker_market_trading_pair
         base_asset, quote_asset = maker_market.split("-")
-        return f"What is your top depth tolerance? (in {base_asset})"
+        # return f"What is your top depth tolerance? (in {base_asset})"
+        return _("What is your top depth tolerance? (in {base_asset})").format(base_asset=base_asset)
 
     @classmethod
     def order_amount_prompt(cls, model_instance: 'CrossExchangeMarketMakingConfigMap') -> str:
         trading_pair = model_instance.maker_market_trading_pair
         base_asset, quote_asset = trading_pair.split("-")
-        return f"What is the amount of {base_asset} per order?"
+        # return f"What is the amount of {base_asset} per order?"
+        return _("What is the amount of {base_asset} per order?").format(base_asset=base_asset)
 
     # === specific validations ===
     @validator("order_refresh_mode", pre=True)
@@ -396,7 +404,10 @@ class CrossExchangeMarketMakingConfigMap(BaseTradingStrategyMakerTakerConfigMap)
             sub_model = v
         elif v not in ORDER_REFRESH_MODELS:
             raise ValueError(
-                f"Invalid order refresh mode, please choose value from {list(ORDER_REFRESH_MODELS.keys())}."
+                # f"Invalid order refresh mode, please choose value from {list(ORDER_REFRESH_MODELS.keys())}."
+                _("Invalid order refresh mode, please choose value from {order_refresh_modes}.").format(
+                    order_refresh_modes="/".join(list(ORDER_REFRESH_MODELS.keys()))
+                )
             )
         else:
             sub_model = ORDER_REFRESH_MODELS[v].construct()
@@ -408,7 +419,10 @@ class CrossExchangeMarketMakingConfigMap(BaseTradingStrategyMakerTakerConfigMap)
             sub_model = v
         elif v not in CONVERSION_RATE_MODELS:
             raise ValueError(
-                f"Invalid conversion rate mode, please choose value from {list(CONVERSION_RATE_MODELS.keys())}."
+                # f"Invalid conversion rate mode, please choose value from {list(CONVERSION_RATE_MODELS.keys())}."
+                _("Invalid conversion rate mode, please choose value from {conversion_rate_modes}.").format(
+                    conversion_rate_modes="/".join(list(CONVERSION_RATE_MODELS.keys()))
+                )
             )
         else:
             sub_model = CONVERSION_RATE_MODELS[v].construct()

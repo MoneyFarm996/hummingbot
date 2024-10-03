@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any, Dict, Generator, Optional
 
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.core.gateway.gateway_http_client import GatewayHttpClient
 
 if TYPE_CHECKING:
@@ -35,7 +36,8 @@ class GatewayChainApiManager:
         resp = await GatewayHttpClient.get_instance().get_network_status(chain, network)
 
         if resp.get("currentBlockNumber", -1) > 0:
-            self.notify(f"Successfully pinged the node url for {chain}-{network}: {node_url}.")
+            # self.notify(f"Successfully pinged the node url for {chain}-{network}: {node_url}.")
+            self.notify(_("Successfully pinged the node url for {chain}-{network}: {node_url}.").format(chain=chain, network=network, node_url=node_url))
             return True
         return False
 
@@ -45,7 +47,8 @@ class GatewayChainApiManager:
         """
         with begin_placeholder_mode(self):
             while True:
-                node_url: str = await self.app.prompt(prompt=f"Enter a node url (with API key if necessary) for {chain}-{network}: >>> ")
+                # node_url: str = await self.app.prompt(prompt=f"Enter a node url (with API key if necessary) for {chain}-{network}: >>> ")
+                node_url: str = await self.app.prompt(prompt=_("Enter a node url (with API key if necessary) for {chain}-{network}: >>> ").format(chain=chain, network=network))
 
                 self.app.clear_input()
                 self.app.change_prompt(prompt="")
@@ -59,12 +62,15 @@ class GatewayChainApiManager:
 
                     await self._update_gateway_chain_network_node_url(chain, network, node_url)
 
-                    self.notify("Restarting gateway to update with new node url...")
+                    # self.notify("Restarting gateway to update with new node url...")
+                    self.notify(_("Restarting gateway to update with new node url..."))
                     # wait about 30 seconds for the gateway to restart
                     gateway_live = await self.ping_gateway_api(30)
                     if not gateway_live:
-                        self.notify("Error: unable to restart gateway. Try 'start' again after gateway is running.")
-                        self.notify("Stopping strategy...")
+                        # self.notify("Error: unable to restart gateway. Try 'start' again after gateway is running.")
+                        # self.notify("Stopping strategy...")
+                        self.notify(_("Error: unable to restart gateway. Try 'start' again after gateway is running."))
+                        self.notify(_("Stopping strategy..."))
                         self.stop()
 
                     success: bool = await self._check_node_status(chain, network, node_url)
@@ -73,7 +79,8 @@ class GatewayChainApiManager:
                         continue
                     return node_url
                 except Exception:
-                    self.notify(f"Error occured when trying to ping the node URL: {node_url}.")
+                    # self.notify(f"Error occured when trying to ping the node URL: {node_url}.")
+                    self.notify(_("Error occured when trying to ping the node URL: {node_url}.").format(node_url=node_url))
 
     async def _test_node_url_from_gateway_config(self, chain: str, network: str, attempt_connection: bool = True) -> bool:
         """
@@ -90,19 +97,23 @@ class GatewayChainApiManager:
                     node_url: Optional[str] = network_config.get("nodeURL")
                     if not attempt_connection:
                         while True:
-                            change_node: str = await self.app.prompt(prompt=f"Do you want to continue to use node url '{node_url}' for {chain}-{network}? (Yes/No) ")
+                            # change_node: str = await self.app.prompt(prompt=f"Do you want to continue to use node url '{node_url}' for {chain}-{network}? (Yes/No) ")
+                            change_node: str = await self.app.prompt(prompt=_("Do you want to continue to use node url '{node_url}' for {chain}-{network}? (Yes/No) ").format(chain=chain, network=network, node_url=node_url))
                             if self.app.to_stop_config:
                                 return
                             if change_node in ["Y", "y", "Yes", "yes", "N", "n", "No", "no"]:
                                 break
-                            self.notify("Invalid input. Please try again or exit config [CTRL + x].\n")
+                            # self.notify("Invalid input. Please try again or exit config [CTRL + x].\n")
+                            self.notify(_("Invalid input. Please try again or exit config [CTRL + x].\n"))
 
                         self.app.clear_input()
                         # they use an existing wallet
                         if change_node is not None and change_node in ["N", "n", "No", "no"]:
-                            node_url: str = await self.app.prompt(prompt=f"Enter a new node url (with API key if necessary) for {chain}-{network}: >>> ")
+                            # node_url: str = await self.app.prompt(prompt=f"Enter a new node url (with API key if necessary) for {chain}-{network}: >>> ")
+                            node_url: str = await self.app.prompt(prompt=_("Enter a new node url (with API key if necessary) for {chain}-{network}: >>> ").format(chain=chain, network=network))
                             await self._update_gateway_chain_network_node_url(chain, network, node_url)
-                            self.notify("Restarting gateway to update with new node url...")
+                            # self.notify("Restarting gateway to update with new node url...")
+                            self.notify(_("Restarting gateway to update with new node url..."))
                             # wait about 30 seconds for the gateway to restart
                             await self.ping_gateway_api(30)
                         return True
@@ -111,16 +122,20 @@ class GatewayChainApiManager:
                         try:
                             return await self._test_node_url(chain, network)
                         except Exception:
-                            self.notify(f"Unable to successfully ping the node url for {chain}-{network}: {node_url}. Please try again (it may require an API key).")
+                            # self.notify(f"Unable to successfully ping the node url for {chain}-{network}: {node_url}. Please try again (it may require an API key).")
+                            self.notify(_("Unable to successfully ping the node url for {chain}-{network}: {node_url}. Please try again (it may require an API key).").format(chain=chain, network=network, node_url=node_url))
                             return False
                 else:
-                    self.notify(f"{chain}.networks.{network} was not found in the gateway config.")
+                    # self.notify(f"{chain}.networks.{network} was not found in the gateway config.")
+                    self.notify(_("{chain}.networks.{network} was not found in the gateway config.").format(chain=chain, network=network))
                     return False
             else:
-                self.notify(f"{chain}.networks was not found in the gateway config.")
+                # self.notify(f"{chain}.networks was not found in the gateway config.")
+                self.notify(_("{chain}.networks was not found in the gateway config.").format(chain=chain))
                 return False
         else:
-            self.notify(f"{chain} was not found in the gateway config.")
+            # self.notify(f"{chain} was not found in the gateway config.")
+            self.notify(_("{chain} was not found in the gateway config.").format(chain=chain))
             return False
 
     @staticmethod

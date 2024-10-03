@@ -13,6 +13,7 @@ from hummingbot.data_feed.candles_feed.candles_factory import CandlesConfig
 from hummingbot.strategy.strategy_v2_base import StrategyV2Base, StrategyV2ConfigBase
 from hummingbot.strategy_v2.executors.position_executor.data_types import PositionExecutorConfig, TripleBarrierConfig
 from hummingbot.strategy_v2.models.executor_actions import CreateExecutorAction, StopExecutorAction
+from hummingbot.client.config.i18n import gettext as _
 
 
 class SimpleDirectionalRSIConfig(StrategyV2ConfigBase):
@@ -21,35 +22,35 @@ class SimpleDirectionalRSIConfig(StrategyV2ConfigBase):
     candles_config: List[CandlesConfig] = []
     controllers_config: List[str] = []
     exchange: str = Field(default="hyperliquid_perpetual", client_data=ClientFieldData(
-        prompt_on_new=True, prompt=lambda mi: "Exchange where the bot will trade"))
+        prompt_on_new=True, prompt=lambda mi: _("Exchange where the bot will trade")))
     trading_pair: str = Field(default="ETH-USD", client_data=ClientFieldData(
-        prompt_on_new=True, prompt=lambda mi: "Trading pair where the bot will trade"))
+        prompt_on_new=True, prompt=lambda mi: _("Trading pair where the bot will trade")))
     candles_exchange: str = Field(default="binance_perpetual", client_data=ClientFieldData(
-        prompt_on_new=True, prompt=lambda mi: "Candles exchange used to calculate RSI"))
+        prompt_on_new=True, prompt=lambda mi: _("Candles exchange used to calculate RSI")))
     candles_pair: str = Field(default="ETH-USDT", client_data=ClientFieldData(
-        prompt_on_new=True, prompt=lambda mi: "Candles trading pair used to calculate RSI"))
+        prompt_on_new=True, prompt=lambda mi: _("Candles trading pair used to calculate RSI")))
     candles_interval: str = Field(default="1m", client_data=ClientFieldData(
-        prompt_on_new=False, prompt=lambda mi: "Candle interval (e.g. 1m for 1 minute)"))
+        prompt_on_new=False, prompt=lambda mi: _("Candle interval (e.g. 1m for 1 minute)")))
     candles_length: int = Field(default=60, gt=0, client_data=ClientFieldData(
-        prompt_on_new=True, prompt=lambda mi: "Number of candles used to calculate RSI (e.g. 60)"))
+        prompt_on_new=True, prompt=lambda mi: _("Number of candles used to calculate RSI (e.g. 60)")))
     rsi_low: float = Field(default=30, gt=0, client_data=ClientFieldData(
-        prompt_on_new=True, prompt=lambda mi: "RSI lower bound to enter long position (e.g. 30)"))
+        prompt_on_new=True, prompt=lambda mi: _("RSI lower bound to enter long position (e.g. 30)")))
     rsi_high: float = Field(default=70, gt=0, client_data=ClientFieldData(
-        prompt_on_new=True, prompt=lambda mi: "RSI upper bound to enter short position (e.g. 70)"))
+        prompt_on_new=True, prompt=lambda mi: _("RSI upper bound to enter short position (e.g. 70)")))
     order_amount_quote: Decimal = Field(default=30, gt=0, client_data=ClientFieldData(
-        prompt_on_new=True, prompt=lambda mi: "Order amount in quote asset"))
+        prompt_on_new=True, prompt=lambda mi: _("Order amount in quote asset")))
     leverage: int = Field(default=10, gt=0, client_data=ClientFieldData(
-        prompt_on_new=True, prompt=lambda mi: "Leverage (e.g. 10 for 10x)"))
+        prompt_on_new=True, prompt=lambda mi: _("Leverage (e.g. 10 for 10x)")))
     position_mode: PositionMode = Field(default="ONEWAY", client_data=ClientFieldData(
-        prompt_on_new=True, prompt=lambda mi: "Position mode (HEDGE/ONEWAY)"))
+        prompt_on_new=True, prompt=lambda mi: _("Position mode (HEDGE/ONEWAY)")))
 
     # Triple Barrier Configuration
     stop_loss: Decimal = Field(default=Decimal("0.03"), gt=0, client_data=ClientFieldData(
-        prompt_on_new=True, prompt=lambda mi: "Position stop loss (e.g. 0.03 for 3%)"))
+        prompt_on_new=True, prompt=lambda mi: _("Position stop loss (e.g. 0.03 for 3%)")))
     take_profit: Decimal = Field(default=Decimal("0.01"), gt=0, client_data=ClientFieldData(
-        prompt_on_new=True, prompt=lambda mi: "Position take profit (e.g. 0.01 for 1%)"))
+        prompt_on_new=True, prompt=lambda mi: _("Position take profit (e.g. 0.01 for 1%)")))
     time_limit: int = Field(default=60 * 45, gt=0, client_data=ClientFieldData(
-        prompt_on_new=True, prompt=lambda mi: "Position time limit in seconds (e.g. 300 for 5 minutes)"))
+        prompt_on_new=True, prompt=lambda mi: _("Position time limit in seconds (e.g. 300 for 5 minutes)")))
 
     @property
     def triple_barrier_config(self) -> TripleBarrierConfig:
@@ -74,6 +75,7 @@ class SimpleDirectionalRSI(StrategyV2Base):
     """
     This strategy uses RSI (Relative Strength Index) to generate trading signals and execute trades based on the RSI values.
     It defines the specific parameters and configurations for the RSI strategy.
+    chinese: 这个策略使用 RSI（相对强弱指数）生成交易信号，并根据 RSI 值执行交易。
     """
 
     account_config_set = False

@@ -5,6 +5,7 @@ from pydantic import Field, validator
 
 from hummingbot.client.config.config_data_types import BaseClientModel, ClientConfigEnum, ClientFieldData
 from hummingbot.client.config.config_validators import validate_bool, validate_decimal, validate_market_trading_pair
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.client.config.strategy_config_data_types import BaseStrategyConfigMap
 from hummingbot.client.settings import AllConnectorSettings
 
@@ -20,9 +21,10 @@ ExchangeEnum = ClientConfigEnum(  # rebuild the exchanges enum
 def get_field(i: int) -> Field:
     return Field(
         default="",
-        description="The name of the hedge exchange connector.",
+        description=_("The name of the hedge exchange connector."),
         client_data=ClientFieldData(
-            prompt=lambda mi: f"Do you want to monitor connector {i}? (y/n)",
+            # prompt=lambda mi: f"Do you want to monitor connector {i}? (y/n)",
+            prompt=lambda mi: _("Do you want to monitor connector {i}? (y/n)").format(i=i),
             prompt_on_new=True,
         ),
     )
@@ -43,15 +45,15 @@ class EmptyMarketConfigMap(BaseClientModel):
 class MarketConfigMap(BaseClientModel):
     connector: Union[None, ExchangeEnum] = Field(
         default=...,
-        description="The name of the exchange connector.",
+        description=_("The name of the exchange connector."),
         client_data=ClientFieldData(
-            prompt=lambda mi: "Enter name of the exchange to use",
+            prompt=lambda mi: _("Enter name of the exchange to use"),
             prompt_on_new=True,
         ),
     )
     markets: Union[None, List[str]] = Field(
         default=...,
-        description="The name of the trading pair.",
+        description=_("The name of the trading pair."),
         client_data=ClientFieldData(
             prompt=lambda mi: MarketConfigMap.trading_pair_prompt(mi),
             prompt_on_new=True,
@@ -59,13 +61,13 @@ class MarketConfigMap(BaseClientModel):
     )
     offsets: Union[None, List[Decimal]] = Field(
         default=Decimal("0.0"),
-        description="The offsets for each trading pair.",
+        description=_("The offsets for each trading pair."),
         client_data=ClientFieldData(
-            prompt=lambda mi: "Enter the offsets to use to hedge the markets comma seperated. "
-            "the remainder will be assumed as 0 if no inputs. "
-            "e.g if markets is BTC-USDT,ETH-USDT,LTC-USDT. "
-            "and offsets is 0.1, -0.2. "
-            "then the offset amount that will be added is 0.1 BTC, -0.2 ETH and 0 LTC. ",
+            prompt=lambda mi: _("Enter the offsets to use to hedge the markets comma seperated. "
+                                "the remainder will be assumed as 0 if no inputs. "
+                                "e.g if markets is BTC-USDT,ETH-USDT,LTC-USDT. "
+                                "and offsets is 0.1, -0.2. "
+                                "then the offset amount that will be added is 0.1 BTC, -0.2 ETH and 0 LTC. "),
             prompt_on_new=True,
         ),
     )
@@ -105,8 +107,10 @@ class MarketConfigMap(BaseClientModel):
             return ""
         example = AllConnectorSettings.get_example_pairs().get(exchange)
         return (
-            f"Enter the token trading pair you would like to hedge/monitor on comma seperated"
-            f" {exchange}{f' (e.g. {example})' if example else ''}"
+            # "Enter the token trading pair you would like to hedge/monitor on comma seperated"
+            # f" {exchange}{f' (e.g. {example})' if example else ''}"
+            _(f"Enter the token trading pair you would like to hedge/monitor on comma seperated,{exchange} e.g. {example}").format(
+                exchange=exchange, example=example)
         )
 
     class Config:
@@ -120,56 +124,58 @@ class HedgeConfigMap(BaseStrategyConfigMap):
     strategy: str = Field(default="hedge", client_data=None)
     value_mode: bool = Field(
         default=True,
-        description="Whether to hedge based on value or amount",
+        description=_("Whether to hedge based on value or amount"),
         client_data=ClientFieldData(
-            prompt=lambda mi: "Do you want to hedge by asset value [y] or asset amount[n] (y/n)?",
+            prompt=lambda mi: _("Do you want to hedge by asset value [y] or asset amount[n] (y/n)?"),
             prompt_on_new=True,
         ),
     )
     hedge_ratio: Decimal = Field(
         default=Decimal("1"),
-        description="The ratio of the hedge amount to the total asset amount",
+        description=_("The ratio of the hedge amount to the total asset amount"),
         client_data=ClientFieldData(
-            prompt=lambda mi: "Enter ratio of asset to hedge, e.g 0.5 means 50 percent of the total asset value will be hedged.",
+            prompt=lambda
+                mi: _(
+                "Enter ratio of asset to hedge, e.g 0.5 means 50 percent of the total asset value will be hedged."),
             prompt_on_new=True,
         ),
     )
     hedge_interval: int = Field(
         default=60,
-        description="The interval in seconds to check for hedge.",
+        description=_("The interval in seconds to check for hedge."),
         client_data=ClientFieldData(
-            prompt=lambda mi: "Enter the interval in seconds to check for hedge",
+            prompt=lambda mi: _("Enter the interval in seconds to check for hedge"),
             prompt_on_new=True,
         ),
     )
     min_trade_size: Decimal = Field(
         default=Decimal("0.0"),
-        description="The minimum trade size in quote asset.",
+        description=_("The minimum trade size in quote asset."),
         ge=0,
         client_data=ClientFieldData(
-            prompt=lambda mi: "Enter the minimum trade size in quote asset",
+            prompt=lambda mi: _("Enter the minimum trade size in quote asset"),
             prompt_on_new=True,
         ),
     )
     slippage: Decimal = Field(
         default=Decimal("0.02"),
-        description="The slippage tolerance for the hedge order.",
+        description=_("The slippage tolerance for the hedge order."),
         client_data=ClientFieldData(
-            prompt=lambda mi: "Enter the slippage tolerance for the hedge order",
+            prompt=lambda mi: _("Enter the slippage tolerance for the hedge order"),
             prompt_on_new=True,
         ),
     )
     hedge_connector: ExchangeEnum = Field(
         default=...,
-        description="The name of the hedge exchange connector.",
+        description=_("The name of the hedge exchange connector."),
         client_data=ClientFieldData(
-            prompt=lambda mi: "Enter name of the exchange to hedge overall assets",
+            prompt=lambda mi: _("Enter name of the exchange to hedge overall assets"),
             prompt_on_new=True,
         ),
     )
     hedge_markets: List[str] = Field(
         default=...,
-        description="The name of the trading pair.",
+        description=_("The name of the trading pair."),
         client_data=ClientFieldData(
             prompt=lambda mi: HedgeConfigMap.hedge_markets_prompt(mi),
             prompt_on_new=True,
@@ -177,7 +183,7 @@ class HedgeConfigMap(BaseStrategyConfigMap):
     )
     hedge_offsets: List[Decimal] = Field(
         default=Decimal("0.0"),
-        description="The offsets for each trading pair.",
+        description=_("The offsets for each trading pair."),
         client_data=ClientFieldData(
             prompt=lambda mi: HedgeConfigMap.hedge_offsets_prompt(mi),
             prompt_on_new=True,
@@ -185,25 +191,26 @@ class HedgeConfigMap(BaseStrategyConfigMap):
     )
     hedge_leverage: int = Field(
         default=1,
-        description="The leverage to use for the market.",
+        description=_("The leverage to use for the market."),
         client_data=ClientFieldData(
-            prompt=lambda mi: "Enter the leverage to use for the hedge market",
+            prompt=lambda mi: _("Enter the leverage to use for the hedge market"),
             prompt_on_new=True,
         ),
     )
     hedge_position_mode: Literal["ONEWAY", "HEDGE"] = Field(
         default="ONEWAY",
-        description="The position mode to use for the market.",
+        description=_("The position mode to use for the market."),
         client_data=ClientFieldData(
-            prompt=lambda mi: "Enter the position mode to use for the hedge market",
+            prompt=lambda mi: _("Enter the position mode to use for the hedge market"),
             prompt_on_new=True,
         ),
     )
     enable_auto_set_position_mode: bool = Field(
         default=False,
-        description="Whether to automatically set the exchange position mode to one-way or hedge based  ratio.",
+        description=_("Whether to automatically set the exchange position mode to one-way or hedge based  ratio."),
         client_data=ClientFieldData(
-            prompt=lambda mi: "Do you want to automatically set the exchange position mode to one-way or hedge [y/n]?",
+            prompt=lambda mi: _(
+                "Do you want to automatically set the exchange position mode to one-way or hedge [y/n]?"),
             prompt_on_new=False,
         )
     )
@@ -218,7 +225,7 @@ class HedgeConfigMap(BaseStrategyConfigMap):
         if isinstance(v, (EmptyMarketConfigMap, MarketConfigMap, Dict)):
             return v
         if validate_bool(v):
-            raise ValueError("enter a boolean value")
+            raise ValueError(_("enter a boolean value"))
         if v.lower() in (True, "true", "yes", "y"):
             return MarketConfigMap.construct()
         return EmptyMarketConfigMap.construct()
@@ -246,9 +253,9 @@ class HedgeConfigMap(BaseStrategyConfigMap):
             if validated:
                 raise ValueError(validated)
         if len(markets) == 0:
-            raise ValueError("No market entered")
+            raise ValueError(_("No market entered"))
         if values["value_mode"] and len(markets) > 1:
-            raise ValueError("Only one market can be used for value mode")
+            raise ValueError(_("Only one market can be used for value mode"))
         return markets
 
     @staticmethod
@@ -256,10 +263,16 @@ class HedgeConfigMap(BaseStrategyConfigMap):
         """prompts for the markets to hedge"""
         exchange = mi.hedge_connector
         if mi.value_mode:
-            return f"Value mode: Enter the trading pair you would like to hedge on {exchange}. (Example: BTC-USDT)"
-        return f"Amount mode: Enter the list of trading pair you would like to hedge on {exchange}. comma seperated. \
-            (Example: BTC-USDT,ETH-USDT) Only markets with the same base as the hedge markets will be hedged." \
-                "WARNING: currently only supports hedging of base assets."
+            # return f"Value mode: Enter the trading pair you would like to hedge on {exchange}. (Example: BTC-USDT)"
+            return _(
+                f"Value mode: Enter the trading pair you would like to hedge on {exchange}. (Example: BTC-USDT)").format(
+                exchange=exchange)
+        # return f"Amount mode: Enter the list of trading pair you would like to hedge on {exchange}. comma seperated. \
+        #     (Example: BTC-USDT,ETH-USDT) Only markets with the same base as the hedge markets will be hedged." \
+        #        "WARNING: currently only supports hedging of base assets."
+        return _(f"Amount mode: Enter the list of trading pair you would like to hedge on {exchange}. comma seperated. \
+            (Example: BTC-USDT,ETH-USDT) Only markets with the same base as the hedge markets will be hedged. \
+            WARNING: currently only supports hedging of base assets.").format(exchange=exchange)
 
     @staticmethod
     def hedge_offsets_prompt(mi: "HedgeConfigMap") -> str:
@@ -267,9 +280,12 @@ class HedgeConfigMap(BaseStrategyConfigMap):
         if mi.value_mode:
             trading_pair = mi.hedge_markets[0]
             base = trading_pair.split("-")[0]
-            return f"Enter the offset for {base}. (Example: 0.1 = +0.1{base} used in calculation of hedged value)"
+            # return f"Enter the offset for {base}. (Example: 0.1 = +0.1{base} used in calculation of hedged value)"
+            return _(
+                f"Enter the offset for {base}. (Example: 0.1 = +0.1{base} used in calculation of hedged value)").format(
+                base=base)
         return (
-            "Enter the offsets to use to hedge the markets comma seperated. "
-            "(Example: 0.1,-0.2 = +0.1BTC,-0.2ETH, 0LTC will be offset for the exchange amount "
-            "if markets is BTC-USDT,ETH-USDT,LTC-USDT)"
+            _("Enter the offsets to use to hedge the markets comma seperated. "
+              "(Example: 0.1,-0.2 = +0.1BTC,-0.2ETH, 0LTC will be offset for the exchange amount "
+              "if markets is BTC-USDT,ETH-USDT,LTC-USDT)")
         )

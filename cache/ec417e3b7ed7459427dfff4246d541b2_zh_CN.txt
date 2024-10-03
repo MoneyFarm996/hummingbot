@@ -1,0 +1,3 @@
+“{strategy_name}”策略已启动。
+
+运行“status”命令来查询进度。

@@ -17,6 +17,7 @@ from hummingbot.strategy.script_strategy_base import ScriptStrategyBase
 class VWAPConfig(BaseClientModel):
     """
     Configuration parameters for the VWAP strategy.
+    chinese: VWAP 策略的配置参数
     """
 
     script_file_name: str = Field(default_factory=lambda: os.path.basename(__file__))
@@ -44,6 +45,11 @@ class VWAPExample(ScriptStrategyBase):
     - Users can define script configuration parameters
     - Total volume is expressed in quote asset rather than USD
     - Use of the rate oracle has been removed
+
+    这是 simple_vwap_example.py 的更新版本。变化包括：
+    - 用户可以定义脚本配置参数
+    - 总交易量以报价资产而非美元表示
+    - 速率预言机的使用已被删除
     """
 
     @classmethod
@@ -72,6 +78,13 @@ class VWAPExample(ScriptStrategyBase):
          - Create proposal (a list of order candidates)
          - Check the account balance and adjust the proposal accordingly (lower order amount if needed)
          - Lastly, execute the proposal on the exchange
+
+         每个订单延迟时间该策略都会买入或卖出基础资产。它将计算累积订单簿
+         交易量直至价差并购买其中的一定百分比。
+         策略的输入是报价，我们将按初始价格进行转换以获得静态的目标基数。
+         - 创建提案（候选订单列表）
+         - 检查账户余额并相应调整建议（如果需要，降低订单金额）
+         - 最后，在交易所执行提案
          """
         if self.last_ordered_ts < (self.current_timestamp - self.vwap["order_delay_time"]):
             if self.vwap.get("status") is None:
@@ -116,13 +129,16 @@ class VWAPExample(ScriptStrategyBase):
         """
          Retrieves the cumulative volume of the order book until the price spread is reached, then takes a percentage
          of that to use as order amount.
+         检索订单簿的累计交易量，直到达到价差，然后取百分比
+         用作订单金额。
          """
-        # Compute the new price using the max spread allowed
+        # Compute the new price using the max spread allowed 翻译：使用允许的最大价差计算新价格
         mid_price = float(self.vwap["connector"].get_mid_price(self.vwap["trading_pair"]))
         price_multiplier = 1 + self.vwap["price_spread"] if self.vwap["is_buy"] else 1 - self.vwap["price_spread"]
         price_affected_by_spread = mid_price * price_multiplier
 
         # Query the cumulative volume until the price affected by spread
+        # 翻译：查询直到受价差影响的累积交易量
         orderbook_query = self.vwap["connector"].get_volume_for_price(
             trading_pair=self.vwap["trading_pair"],
             is_buy=self.vwap["is_buy"],
@@ -130,9 +146,11 @@ class VWAPExample(ScriptStrategyBase):
         volume_for_price = orderbook_query.result_volume
 
         # Check if the volume available is higher than the remaining
+        # 翻译：检查可用交易量是否高于剩余交易量
         amount = min(volume_for_price * Decimal(self.vwap["volume_perc"]), Decimal(self.vwap["volume_remaining"]))
 
         # Quantize the order amount and price
+        # 翻译：量化订单金额和价格
         amount = self.vwap["connector"].quantize_order_amount(self.vwap["trading_pair"], amount)
         price = self.vwap["connector"].quantize_order_price(self.vwap["trading_pair"],
                                                             Decimal(price_affected_by_spread))

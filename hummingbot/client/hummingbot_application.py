@@ -18,6 +18,7 @@ from hummingbot.client.config.config_helpers import (
     save_to_yml,
 )
 from hummingbot.client.config.gateway_ssl_config_map import SSLConfigMap
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.client.config.security import Security
 from hummingbot.client.config.strategy_config_data_types import BaseStrategyConfigMap
 from hummingbot.client.settings import CLIENT_CONFIG_PATH, AllConnectorSettings, ConnectorType
@@ -70,7 +71,7 @@ class HummingbotApplication(*commands):
 
     def __init__(self, client_config_map: Optional[ClientConfigAdapter] = None):
         self.client_config_map: Union[ClientConfigMap, ClientConfigAdapter] = (  # type-hint enables IDE auto-complete
-            client_config_map or load_client_config_map_from_file()
+                client_config_map or load_client_config_map_from_file()
         )
         self.ssl_config_map: SSLConfigMap = (  # type-hint enables IDE auto-complete
             load_ssl_config_map_from_file()
@@ -206,7 +207,7 @@ class HummingbotApplication(*commands):
                         self.notify(f'  >>> {final_cmd}')
                     self._handle_command(final_cmd)
             else:
-                self.notify('Invalid number of arguments for shortcut')
+                self.notify(_('Invalid number of arguments for shortcut'))
             return True
         return False
 
@@ -246,7 +247,7 @@ class HummingbotApplication(*commands):
             if not self.be_silly(raw_command):
                 self.notify(str(e))
         except NotImplementedError:
-            self.notify("Command not yet implemented. This feature is currently under development.")
+            self.notify(_("Command not yet implemented. This feature is currently under development."))
         except Exception as e:
             self.logger().error(e, exc_info=True)
 
@@ -254,7 +255,7 @@ class HummingbotApplication(*commands):
         success = True
         try:
             kill_timeout: float = self.KILL_TIMEOUT
-            self.notify("Canceling outstanding orders...")
+            self.notify(_("Canceling outstanding orders..."))
 
             for market_name, market in self.markets.items():
                 cancellation_results = await market.cancel_all(kill_timeout)
@@ -262,16 +263,20 @@ class HummingbotApplication(*commands):
                 if len(uncancelled) > 0:
                     success = False
                     uncancelled_order_ids = list(map(lambda cr: cr.order_id, uncancelled))
-                    self.notify("\nFailed to cancel the following orders on %s:\n%s" % (
-                        market_name,
-                        '\n'.join(uncancelled_order_ids)
+                    # self.notify("\nFailed to cancel the following orders on %s:\n%s" % (
+                    #     market_name,
+                    #     '\n'.join(uncancelled_order_ids)
+                    # ))
+                    self.notify(_("Failed to cancel the following orders on {market_name}:\n{uncancelled_order").format(
+                        market_name=market_name,
+                        uncancelled_order='\n'.join(uncancelled_order_ids)
                     ))
         except Exception:
-            self.logger().error("Error canceling outstanding orders.", exc_info=True)
+            self.logger().error(_("Error canceling outstanding orders."), exc_info=True)
             success = False
 
         if success:
-            self.notify("All outstanding orders canceled.")
+            self.notify(_("All outstanding orders canceled."))
         return success
 
     async def run(self):

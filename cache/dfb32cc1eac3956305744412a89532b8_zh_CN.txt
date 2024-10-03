@@ -1,0 +1,2 @@
+订单 {client_order_id} 失败。
+订单更新：{order_update}

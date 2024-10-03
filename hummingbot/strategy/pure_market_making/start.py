@@ -14,7 +14,8 @@ from hummingbot.strategy.pure_market_making.pure_market_making_config_map import
 
 def start(self):
     def convert_decimal_string_to_list(string: Optional[str], divisor: Decimal = Decimal("1")) -> List[Decimal]:
-        '''convert order level spread string into a list of decimal divided by divisor '''
+        """convert order level spread string into a list of decimal divided by divisor """
+        """将订单级别传播字符串转换为除以除数的小数列表 """
         if string is None:
             return []
         string_list = list(string.split(","))

@@ -10,6 +10,8 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Optional
 
+from hummingbot.client.config.i18n import gettext as _
+
 
 def validate_exchange(value: str) -> Optional[str]:
     """
@@ -17,7 +19,9 @@ def validate_exchange(value: str) -> Optional[str]:
     """
     from hummingbot.client.settings import AllConnectorSettings
     if value not in AllConnectorSettings.get_exchange_names():
-        return f"Invalid exchange, please choose value from {AllConnectorSettings.get_exchange_names()}"
+        # return f"Invalid exchange, please choose value from {AllConnectorSettings.get_exchange_names()}"
+        return _("Invalid exchange, please choose value from {exchange_names}").format(
+            exchange_names=AllConnectorSettings.get_exchange_names())
 
 
 def validate_derivative(value: str) -> Optional[str]:
@@ -26,7 +30,9 @@ def validate_derivative(value: str) -> Optional[str]:
     """
     from hummingbot.client.settings import AllConnectorSettings
     if value not in AllConnectorSettings.get_derivative_names():
-        return f"Invalid derivative, please choose value from {AllConnectorSettings.get_derivative_names()}"
+        # return f"Invalid derivative, please choose value from {AllConnectorSettings.get_derivative_names()}"
+        return _("Invalid derivative, please choose value from {derivative_names}").format(
+            derivative_names=AllConnectorSettings.get_derivative_names())
 
 
 def validate_connector(value: str) -> Optional[str]:
@@ -36,7 +42,9 @@ def validate_connector(value: str) -> Optional[str]:
     from hummingbot.client.settings import AllConnectorSettings
     if (value not in AllConnectorSettings.get_connector_settings()
             and value not in AllConnectorSettings.paper_trade_connectors_names):
-        return f"Invalid connector, please choose value from {AllConnectorSettings.get_connector_settings().keys()}"
+        # return f"Invalid connector, please choose value from {AllConnectorSettings.get_connector_settings().keys()}"
+        return _("Invalid connector, please choose value from {connector_names}").format(
+            connector_names=AllConnectorSettings.get_connector_settings().keys())
 
 
 def validate_strategy(value: str) -> Optional[str]:
@@ -45,7 +53,8 @@ def validate_strategy(value: str) -> Optional[str]:
     """
     from hummingbot.client.settings import STRATEGIES
     if value not in STRATEGIES:
-        return f"Invalid strategy, please choose value from {STRATEGIES}"
+        # return f"Invalid strategy, please choose value from {STRATEGIES}"
+        return _("Invalid strategy, please choose value from {strategies}").format(strategies=STRATEGIES)
 
 
 def validate_decimal(value: str, min_value: Decimal = None, max_value: Decimal = None, inclusive=True) -> Optional[str]:
@@ -55,23 +64,32 @@ def validate_decimal(value: str, min_value: Decimal = None, max_value: Decimal =
     try:
         decimal_value = Decimal(value)
     except Exception:
-        return f"{value} is not in decimal format."
+        # return f"{value} is not in decimal format."
+        return _("{value} is not in decimal format.").format(value=value)
     if inclusive:
         if min_value is not None and max_value is not None:
             if not (Decimal(str(min_value)) <= decimal_value <= Decimal(str(max_value))):
-                return f"Value must be between {min_value} and {max_value}."
+                # return f"Value must be between {min_value} and {max_value}."
+                return _("Value must be between {min_value} and {max_value}.").format(min_value=min_value,
+                                                                                      max_value=max_value)
         elif min_value is not None and not decimal_value >= Decimal(str(min_value)):
-            return f"Value cannot be less than {min_value}."
+            # return f"Value cannot be less than {min_value}."
+            return _("Value cannot be less than {min_value}.").format(min_value=min_value)
         elif max_value is not None and not decimal_value <= Decimal(str(max_value)):
-            return f"Value cannot be more than {max_value}."
+            # return f"Value cannot be more than {max_value}."
+            return _("Value cannot be more than {max_value}.").format(max_value=max_value)
     else:
         if min_value is not None and max_value is not None:
             if not (Decimal(str(min_value)) < decimal_value < Decimal(str(max_value))):
-                return f"Value must be between {min_value} and {max_value} (exclusive)."
+                # return f"Value must be between {min_value} and {max_value} (exclusive)."
+                return _("Value must be between {min_value} and {max_value} (exclusive).").format(min_value=min_value,
+                                                                                                  max_value=max_value)
         elif min_value is not None and not decimal_value > Decimal(str(min_value)):
-            return f"Value must be more than {min_value}."
+            # return f"Value must be more than {min_value}."
+            return _("Value must be more than {min_value}.").format(min_value=min_value)
         elif max_value is not None and not decimal_value < Decimal(str(max_value)):
-            return f"Value must be less than {max_value}."
+            # return f"Value must be less than {max_value}."
+            return _("Value must be less than {max_value}.").format(max_value=max_value)
 
 
 def validate_market_trading_pair(market: str, value: str) -> Optional[str]:
@@ -86,7 +104,8 @@ def validate_market_trading_pair(market: str, value: str) -> Optional[str]:
         if len(trading_pairs) == 0:
             return None
         elif value not in trading_pairs:
-            return f"{value} is not an active market on {market}."
+            # return f"{value} is not an active market on {market}."
+            return _("{value} is not an active market on {market}.").format(value=value, market=market)
 
 
 def validate_bool(value: str) -> Optional[str]:
@@ -95,7 +114,8 @@ def validate_bool(value: str) -> Optional[str]:
     """
     valid_values = ('true', 'yes', 'y', 'false', 'no', 'n')
     if value.lower() not in valid_values:
-        return f"Invalid value, please choose value from {valid_values}"
+        # return f"Invalid value, please choose value from {valid_values}"
+        return _("Invalid value, please choose value from {valid_values}").format(valid_values=valid_values)
 
 
 def validate_int(value: str, min_value: int = None, max_value: int = None, inclusive=True) -> Optional[str]:
@@ -105,23 +125,32 @@ def validate_int(value: str, min_value: int = None, max_value: int = None, inclu
     try:
         int_value = int(value)
     except Exception:
-        return f"{value} is not in integer format."
+        # return f"{value} is not in integer format."
+        return _("{value} is not in integer format.").format(value=value)
     if inclusive:
         if min_value is not None and max_value is not None:
             if not (min_value <= int_value <= max_value):
-                return f"Value must be between {min_value} and {max_value}."
+                # return f"Value must be between {min_value} and {max_value}."
+                return _("Value must be between {min_value} and {max_value}.").format(min_value=min_value,
+                                                                                      max_value=max_value)
         elif min_value is not None and not int_value >= min_value:
-            return f"Value cannot be less than {min_value}."
+            # return f"Value cannot be less than {min_value}."
+            return _("Value cannot be less than {min_value}.").format(min_value=min_value)
         elif max_value is not None and not int_value <= max_value:
-            return f"Value cannot be more than {max_value}."
+            # return f"Value cannot be more than {max_value}."
+            return _("Value cannot be more than {max_value}.").format(max_value=max_value)
     else:
         if min_value is not None and max_value is not None:
             if not (min_value < int_value < max_value):
-                return f"Value must be between {min_value} and {max_value} (exclusive)."
+                # return f"Value must be between {min_value} and {max_value} (exclusive)."
+                return _("Value must be between {min_value} and {max_value} (exclusive).").format(min_value=min_value,
+                                                                                                  max_value=max_value)
         elif min_value is not None and not int_value > min_value:
-            return f"Value must be more than {min_value}."
+            # return f"Value must be more than {min_value}."
+            return _("Value must be more than {min_value}.").format(min_value=min_value)
         elif max_value is not None and not int_value < max_value:
-            return f"Value must be less than {max_value}."
+            # return f"Value must be less than {max_value}."
+            return _("Value must be less than {max_value}.").format(max_value=max_value)
 
 
 def validate_float(value: str, min_value: float = None, max_value: float = None, inclusive=True) -> Optional[str]:
@@ -131,37 +160,48 @@ def validate_float(value: str, min_value: float = None, max_value: float = None,
     try:
         float_value = float(value)
     except Exception:
-        return f"{value} is not in integer format."
+        # return f"{value} is not in integer format."
+        return _("{value} is not in integer format.").format(value=value)
     if inclusive:
         if min_value is not None and max_value is not None:
             if not (min_value <= float_value <= max_value):
-                return f"Value must be between {min_value} and {max_value}."
+                # return f"Value must be between {min_value} and {max_value}."
+                return _("Value must be between {min_value} and {max_value}.").format(min_value=min_value,
+                                                                                      max_value=max_value)
         elif min_value is not None and not float_value >= min_value:
-            return f"Value cannot be less than {min_value}."
+            # return f"Value cannot be less than {min_value}."
+            return _("Value cannot be less than {min_value}.").format(min_value=min_value)
         elif max_value is not None and not float_value <= max_value:
-            return f"Value cannot be more than {max_value}."
+            # return f"Value cannot be more than {max_value}."
+            return _("Value cannot be more than {max_value}.").format(max_value=max_value)
     else:
         if min_value is not None and max_value is not None:
             if not (min_value < float_value < max_value):
-                return f"Value must be between {min_value} and {max_value} (exclusive)."
+                # return f"Value must be between {min_value} and {max_value} (exclusive)."
+                return _("Value must be between {min_value} and {max_value} (exclusive).").format(min_value=min_value,
+                                                                                                  max_value=max_value)
         elif min_value is not None and not float_value > min_value:
-            return f"Value must be more than {min_value}."
+            # return f"Value must be more than {min_value}."
+            return _("Value must be more than {min_value}.").format(min_value=min_value)
         elif max_value is not None and not float_value < max_value:
-            return f"Value must be less than {max_value}."
+            # return f"Value must be less than {max_value}."
+            return _("Value must be less than {max_value}.").format(max_value=max_value)
 
 
 def validate_datetime_iso_string(value: str) -> Optional[str]:
     try:
         datetime.strptime(value, '%Y-%m-%d %H:%M:%S')
     except ValueError:
-        return "Incorrect date time format (expected is YYYY-MM-DD HH:MM:SS)"
+        # return "Incorrect date time format (expected is YYYY-MM-DD HH:MM:SS)"
+        return _("Incorrect date time format (expected is YYYY-MM-DD HH:MM:SS)")
 
 
 def validate_time_iso_string(value: str) -> Optional[str]:
     try:
         time.strptime(value, '%H:%M:%S')
     except ValueError:
-        return "Incorrect time format (expected is HH:MM:SS)"
+        # return "Incorrect time format (expected is HH:MM:SS)"
+        return _("Incorrect time format (expected is HH:MM:SS)")
 
 
 def validate_with_regex(value: str, pattern: str, error_message: str) -> Optional[str]:

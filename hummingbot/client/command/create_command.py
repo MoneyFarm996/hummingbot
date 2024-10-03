@@ -28,6 +28,7 @@ from hummingbot.client.config.config_helpers import (
     save_to_yml_legacy,
 )
 from hummingbot.client.config.config_var import ConfigVar
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.client.config.strategy_config_data_types import BaseStrategyConfigMap
 from hummingbot.client.settings import SCRIPT_STRATEGY_CONF_DIR_PATH, STRATEGIES_CONF_DIR_PATH, required_exchanges
 from hummingbot.client.ui.completer import load_completer
@@ -57,7 +58,8 @@ class CreateCommand:
         self.app.hide_input = True
         required_exchanges.clear()
         if script_to_config and controller_name:
-            self.notify("Please provide only one of script or controller name.")
+            # self.notify("Please provide only one of script or controller name.")
+            self.notify(_("Please provide only one of script or controller name."))
             return
         if script_to_config:
             safe_ensure_future(self.prompt_for_configuration_v2(script_to_config))
@@ -79,16 +81,22 @@ class CreateCommand:
                 pass
 
             if not module:
-                raise InvalidController(f"The controller {controller_name} was not found in any subfolder.")
+                # raise InvalidController(f"The controller {controller_name} was not found in any subfolder.")
+                raise InvalidController(_("The controller {controller_name} was not found in any subfolder.").format(
+                    controller_name=controller_name
+                ))
 
             # Load the configuration class from the module
             config_class = next((member for member_name, member in inspect.getmembers(module)
                                  if inspect.isclass(member) and member not in [ControllerConfigBase,
                                                                                MarketMakingControllerConfigBase,
-                                                                               DirectionalTradingControllerConfigBase,]
+                                                                               DirectionalTradingControllerConfigBase, ]
                                  and (issubclass(member, ControllerConfigBase))), None)
             if not config_class:
-                raise InvalidController(f"No configuration class found in the module {controller_name}.")
+                # raise InvalidController(f"No configuration class found in the module {controller_name}.")
+                raise InvalidController(_("No configuration class found in the module {controller_name}.").format(
+                    controller_name=controller_name
+                ))
 
             config_class_instance = config_class.construct()
             config_class_instance.id = config_class_instance.set_id(None)
@@ -97,7 +105,10 @@ class CreateCommand:
             await self.prompt_for_model_config(config_map)
             if not self.app.to_stop_config:
                 file_name = await self.save_config(controller_name, config_map, settings.CONTROLLERS_CONF_DIR_PATH)
-                self.notify(f"A new config file has been created: {file_name}")
+                # self.notify(f"A new config file has been created: {file_name}")
+                self.notify(_("A new config file has been created: {file_name}").format(
+                    file_name=file_name
+                ))
 
             self.app.change_prompt(prompt=">>> ")
             self.app.input_field.completer = load_completer(self)
@@ -105,9 +116,15 @@ class CreateCommand:
             self.app.hide_input = False
 
         except StopIteration:
-            raise InvalidController(f"The module {controller_name} does not contain any subclass of BaseModel")
+            # raise InvalidController(f"The module {controller_name} does not contain any subclass of BaseModel")
+            raise InvalidController(_("The module {controller_name} does not contain any subclass of BaseModel").format(
+                controller_name=controller_name
+            ))
         except Exception as e:
-            self.notify(f"An error occurred: {str(e)}")
+            # self.notify(f"An error occurred: {str(e)}")
+            self.notify(_("An error occurred: {error}").format(
+                error=str(e)
+            ))
             self.reset_application_state()
 
     async def prompt_for_configuration_v2(self,  # type: HummingbotApplication
@@ -124,16 +141,26 @@ class CreateCommand:
             await self.prompt_for_model_config(config_map)
             if not self.app.to_stop_config:
                 file_name = await self.save_config(script_to_config, config_map, SCRIPT_STRATEGY_CONF_DIR_PATH)
-                self.notify(f"A new config file has been created: {file_name}")
+                # self.notify(f"A new config file has been created: {file_name}")
+                self.notify(_("A new config file has been created: {file_name}").format(
+                    file_name=file_name
+                ))
             self.app.change_prompt(prompt=">>> ")
             self.app.input_field.completer = load_completer(self)
             self.placeholder_mode = False
             self.app.hide_input = False
 
         except StopIteration:
-            raise InvalidScriptModule(f"The module {script_to_config} does not contain any subclass of BaseModel")
+            # raise InvalidScriptModule(f"The module {script_to_config} does not contain any subclass of BaseModel")
+            raise InvalidScriptModule(
+                _("The module {script_to_config} does not contain any subclass of BaseModel").format(
+                    script_to_config=script_to_config
+                ))
         except Exception as e:
-            self.notify(f"An error occurred: {str(e)}")
+            # self.notify(f"An error occurred: {str(e)}")
+            self.notify(_("An error occurred: {error}").format(
+                error=str(e)
+            ))
             self.reset_application_state()
 
     async def save_config(self, name: str, config_instance: BaseClientModel, config_dir_path: Path):
@@ -145,7 +172,10 @@ class CreateCommand:
 
         # Check if the file already exists
         if config_path.exists():
-            self.notify(f"File {file_name} already exists. Please enter a different file name.")
+            # self.notify(f"File {file_name} already exists. Please enter a different file name.")
+            self.notify(_("File {file_name} already exists. Please enter a different file name.").format(
+                file_name=file_name
+            ))
             return await self.save_config(name, config_instance, config_dir_path)  # Recursive call
 
         config_path = config_dir_path / file_name
@@ -164,7 +194,7 @@ class CreateCommand:
         return file_name
 
     async def prompt_for_configuration(
-        self,  # type: HummingbotApplication
+            self,  # type: HummingbotApplication
     ):
         strategy = await self.get_strategy_name()
 
@@ -193,14 +223,17 @@ class CreateCommand:
         self.strategy_config_map = config_map
         # Reload completer here otherwise the new file will not appear
         self.app.input_field.completer = load_completer(self)
-        self.notify(f"A new config file has been created: {self.strategy_file_name}")
+        # self.notify(f"A new config file has been created: {self.strategy_file_name}")
+        self.notify(_("A new config file has been created: {file_name}").format(
+            file_name=self.strategy_file_name
+        ))
         self.placeholder_mode = False
         self.app.hide_input = False
 
         await self.verify_status()
 
     async def get_strategy_name(
-        self,  # type: HummingbotApplication
+            self,  # type: HummingbotApplication
     ) -> Optional[str]:
         strategy = None
         strategy_config = ClientConfigAdapter(BaseStrategyConfigMap.construct())
@@ -210,23 +243,23 @@ class CreateCommand:
         return strategy
 
     async def prompt_for_model_config(
-        self,  # type: HummingbotApplication
-        config_map: ClientConfigAdapter,
+            self,  # type: HummingbotApplication
+            config_map: ClientConfigAdapter,
     ):
         for key in config_map.keys():
             client_data = config_map.get_client_data(key)
             if (
-                client_data is not None
-                and (client_data.prompt_on_new or config_map.is_required(key))
+                    client_data is not None
+                    and (client_data.prompt_on_new or config_map.is_required(key))
             ):
                 await self.prompt_a_config(config_map, key)
                 if self.app.to_stop_config:
                     break
 
     async def prompt_for_configuration_legacy(
-        self,  # type: HummingbotApplication
-        strategy: str,
-        config_map: Dict,
+            self,  # type: HummingbotApplication
+            strategy: str,
+            config_map: Dict,
     ):
         config_map_backup = copy.deepcopy(config_map)
         # assign default values and reset those not required
@@ -262,11 +295,11 @@ class CreateCommand:
         return file_name
 
     async def prompt_a_config(
-        self,  # type: HummingbotApplication
-        model: ClientConfigAdapter,
-        config: str,
-        input_value=None,
-        assign_default=True,
+            self,  # type: HummingbotApplication
+            model: ClientConfigAdapter,
+            config: str,
+            input_value=None,
+            assign_default=True,
     ):
         config_path = config.split(".")
         while len(config_path) != 1:
@@ -296,10 +329,10 @@ class CreateCommand:
             await self.prompt_for_model_config(new_config_value)
 
     async def prompt_a_config_legacy(
-        self,  # type: HummingbotApplication
-        config: ConfigVar,
-        input_value=None,
-        assign_default=True,
+            self,  # type: HummingbotApplication
+            config: ConfigVar,
+            input_value=None,
+            assign_default=True,
     ):
         if config.key == "inventory_price":
             await self.inventory_price_prompt_legacy(self.strategy_config_map, input_value)
@@ -322,8 +355,8 @@ class CreateCommand:
             config.value = value
 
     async def save_config_to_file(
-        self,  # type: HummingbotApplication
-        config_map: ClientConfigAdapter,
+            self,  # type: HummingbotApplication
+            config_map: ClientConfigAdapter,
     ) -> str:
         file_name = await self.prompt_new_file_name(config_map.strategy)
         if self.app.to_stop_config:
@@ -339,33 +372,40 @@ class CreateCommand:
                                    is_script: bool = False):
         file_name = default_strategy_file_path(strategy)
         self.app.set_text(file_name)
-        input = await self.app.prompt(prompt="Enter a new file name for your configuration >>> ")
+        # input = await self.app.prompt(prompt="Enter a new file name for your configuration >>> ")
+        input = await self.app.prompt(prompt=_("Enter a new file name for your configuration >>> "))
         input = format_config_file_name(input)
         conf_dir_path = STRATEGIES_CONF_DIR_PATH if not is_script else SCRIPT_STRATEGY_CONF_DIR_PATH
         file_path = os.path.join(conf_dir_path, input)
         if input is None or input == "":
-            self.notify("Value is required.")
+            # self.notify("Value is required.")
+            self.notify(_("Value is required."))
             return await self.prompt_new_file_name(strategy, is_script)
         elif os.path.exists(file_path):
-            self.notify(f"{input} file already exists, please enter a new name.")
+            # self.notify(f"{input} file already exists, please enter a new name.")
+            self.notify(_("{input} file already exists, please enter a new name.").format(
+                input=input
+            ))
             return await self.prompt_new_file_name(strategy, is_script)
         else:
             return input
 
     async def verify_status(
-        self  # type: HummingbotApplication
+            self  # type: HummingbotApplication
     ):
         try:
             timeout = float(self.client_config_map.commands_timeout.create_command_timeout)
             all_status_go = await asyncio.wait_for(self.status_check_all(), timeout)
         except asyncio.TimeoutError:
-            self.notify("\nA network error prevented the connection check to complete. See logs for more details.")
+            # self.notify("\nA network error prevented the connection check to complete. See logs for more details.")
+            self.notify(_("\nA network error prevented the connection check to complete. See logs for more details."))
             self.strategy_file_name = None
             self.strategy_name = None
             self.strategy_config = None
             raise
         if all_status_go:
-            self.notify("\nEnter \"start\" to start market making.")
+            # self.notify("\nEnter \"start\" to start market making.")
+            self.notify(_("Enter \"start\" to start market making."))
 
     @staticmethod
     def restore_config_legacy(config_map: Dict[str, ConfigVar], config_map_backup: Dict[str, ConfigVar]):

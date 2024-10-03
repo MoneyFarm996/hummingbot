@@ -2,11 +2,12 @@ import asyncio
 import logging
 from decimal import Decimal
 from statistics import mean
-from typing import Dict, List, Set, Union
+from typing import Dict, List, Set, Union, Any
 
 import numpy as np
 import pandas as pd
 
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.connector.exchange_base import ExchangeBase
 from hummingbot.connector.parrot import get_campaign_summary
 from hummingbot.core.clock import Clock
@@ -25,6 +26,7 @@ from hummingbot.strategy.utils import order_age
 from ...client.config.client_config_map import ClientConfigMap
 from ...client.config.config_helpers import ClientConfigAdapter
 from .data_types import PriceSize, Proposal
+from ...data_feed.miner_market.miner_market_band import MinerMarketBandDataFeed
 
 NaN = float("nan")
 s_decimal_zero = Decimal(0)
@@ -48,6 +50,7 @@ class LiquidityMiningStrategy(StrategyPyBase):
                     token: str,
                     order_amount: Decimal,
                     spread: Decimal,
+                    dynamic_spread: bool,
                     inventory_skew_enabled: bool,
                     target_base_pct: Decimal,
                     order_refresh_time: float,
@@ -67,6 +70,7 @@ class LiquidityMiningStrategy(StrategyPyBase):
         self._token = token
         self._order_amount = order_amount
         self._spread = spread
+        self._dynamic_spread = dynamic_spread
         self._order_refresh_time = order_refresh_time
         self._order_refresh_tolerance_pct = order_refresh_tolerance_pct
         self._inventory_skew_enabled = inventory_skew_enabled
@@ -96,6 +100,7 @@ class LiquidityMiningStrategy(StrategyPyBase):
     def active_orders(self):
         """
         List active orders (they have been sent to the market and have not been canceled yet)
+        中文注释：列出活动订单（已发送到市场，但尚未取消）
         """
         limit_orders = self.order_tracker.active_limit_orders
         return [o[1] for o in limit_orders]
@@ -111,20 +116,27 @@ class LiquidityMiningStrategy(StrategyPyBase):
     def tick(self, timestamp: float):
         """
         Clock tick entry point, is run every second (on normal tick setting).
+        中文注释：时钟滴答入口点，每秒运行一次（在正常滴答设置中）。
         :param timestamp: current tick timestamp
+        中文注释：当前滴答时间戳
         """
         if not self._ready_to_trade:
             # Check if there are restored orders, they should be canceled before strategy starts.
             self._ready_to_trade = self._exchange.ready and len(self._exchange.limit_orders) == 0
             if not self._exchange.ready:
-                self.logger().warning(f"{self._exchange.name} is not ready. Please wait...")
+                # self.logger().warning(f"{self._exchange.name} is not ready. Please wait...")
+                self.logger().warning(_("{exchange} is not ready. Please wait...").format(exchange=self._exchange.name))
                 return
             else:
-                self.logger().info(f"{self._exchange.name} is ready. Trading started.")
+                # self.logger().info(f"{self._exchange.name} is ready. Trading started.")
+                self.logger().info(_("{exchange} is ready. Trading started.").format(exchange=self._exchange.name))
                 if self._validate_order_book_for_markets() >= 1:
                     self.create_budget_allocation()
                 else:
-                    self.logger().warning(f"{self._exchange.name} has no pairs with order book. Consider redefining your strategy.")
+                    # self.logger().warning(f"{self._exchange.name} has no pairs with order book. Consider redefining your strategy.")
+                    self.logger().warning(
+                        _("{exchange} has no pairs with order book. Consider redefining your strategy.").format(
+                            exchange=self._exchange.name))
                     return
 
         self.update_mid_prices()
@@ -142,6 +154,7 @@ class LiquidityMiningStrategy(StrategyPyBase):
     async def active_orders_df(self) -> pd.DataFrame:
         """
         Return the active orders in a DataFrame.
+        中文注释：以DataFrame形式返回活动订单。
         """
         size_q_col = f"Amt({self._token})" if self.is_token_a_quote_token() else "Amt(Quote)"
         columns = ["Market", "Side", "Price", "Spread", "Amount", size_q_col, "Age"]
@@ -169,6 +182,7 @@ class LiquidityMiningStrategy(StrategyPyBase):
     def budget_status_df(self) -> pd.DataFrame:
         """
         Return the trader's budget in a DataFrame
+        中文注释：以DataFrame形式返回交易者的预算
         """
         data = []
         columns = ["Market", f"Budget({self._token})", "Base bal", "Quote bal", "Base/Quote"]
@@ -196,6 +210,7 @@ class LiquidityMiningStrategy(StrategyPyBase):
     def market_status_df(self) -> pd.DataFrame:
         """
         Return the market status (prices, volatility) in a DataFrame
+        中文注释：以DataFrame形式返回市场状态（价格、波动性）
         """
         data = []
         columns = ["Market", "Mid price", "Best bid", "Best ask", "Volatility"]
@@ -219,6 +234,7 @@ class LiquidityMiningStrategy(StrategyPyBase):
     async def miner_status_df(self) -> pd.DataFrame:
         """
         Return the miner status (payouts, rewards, liquidity, etc.) in a DataFrame
+        中文注释：以DataFrame形式返回矿工状态（支付、奖励、流动性等）
         """
         data = []
         g_sym = self._client_config_map.global_token.global_token_symbol
@@ -243,9 +259,11 @@ class LiquidityMiningStrategy(StrategyPyBase):
     async def format_status(self) -> str:
         """
         Return the budget, market, miner and order statuses.
+        中文注释：返回预算、市场、矿工和订单状态
         """
         if not self._ready_to_trade:
-            return "Market connectors are not ready."
+            # return "Market connectors are not ready."
+            return _("Market connectors are not ready.")
         lines = []
         warning_lines = []
         warning_lines.extend(self.network_warning(list(self._market_infos.values())))
@@ -284,6 +302,7 @@ class LiquidityMiningStrategy(StrategyPyBase):
         """
         Verify that the active markets have non-empty order books. Put the trading on hold
         for pairs with empty order books, in case it is a glitch?
+        中文注释：验证活动市场是否有非空订单簿。对于订单簿为空的交易对，暂停交易，以防是一个故障？
         """
         markets = self._market_infos.copy()
         markets.update(self._empty_ob_market_infos)
@@ -291,12 +310,15 @@ class LiquidityMiningStrategy(StrategyPyBase):
             if markets[market].get_price(False).is_nan():
                 self._empty_ob_market_infos[market] = market_info
                 if market in self._market_infos:
-                    self.logger().warning(f"{market} has an empty order book. Trading is paused")
+                    # self.logger().warning(f"{market} has an empty order book. Trading is paused")
+                    self.logger().warning(
+                        _("{market} has an empty order book. Trading is paused").format(market=market))
                     self._market_infos.pop(market)
             else:
                 self._market_infos[market] = market_info
                 if market in self._empty_ob_market_infos:
-                    self.logger().warning(f"{market} is being reactivated")
+                    # self.logger().warning(f"{market} is being reactivated")
+                    self.logger().warning(_("{market} is being reactivated").format(market=market))
                     self._empty_ob_market_infos.pop(market)
         return len(self._market_infos)
 
@@ -304,7 +326,15 @@ class LiquidityMiningStrategy(StrategyPyBase):
         """
         Each tick this strategy creates a set of proposals based on the market_info and the parameters from the
         constructor.
+        中文注释：每个滴答，此策略根据market_info和构造函数中的参数创建一组提案。
         """
+        # 判断是否启用dynamic_spread
+        if self._dynamic_spread:
+            return self.create_base_proposals_dynamic()
+        else:
+            return self.create_base_proposals_static()
+
+    def create_base_proposals_static(self):
         proposals = []
         for market, market_info in self._market_infos.items():
             spread = self._spread
@@ -323,9 +353,30 @@ class LiquidityMiningStrategy(StrategyPyBase):
             proposals.append(Proposal(market, PriceSize(buy_price, buy_size), PriceSize(sell_price, sell_size)))
         return proposals
 
+    def create_base_proposals_dynamic(self):
+        proposals = []
+        for market, market_info in self._market_infos.items():
+            dynamic_spread_data: dict[str, Any] = self._ev_loop.run_until_complete(
+                MinerMarketBandDataFeed.get_spread(self._exchange.name, market))
+            if dynamic_spread_data is not None:
+                bid_spread = Decimal(dynamic_spread_data["spread_bid"]) * self._volatility_to_spread_multiplier
+                ask_spread = Decimal(dynamic_spread_data["spread_ask"]) * self._volatility_to_spread_multiplier
+                mid_price = market_info.get_mid_price()
+                buy_price = mid_price * (Decimal("1") - bid_spread)
+                buy_price = self._exchange.quantize_order_price(market, buy_price)
+                buy_size = self.base_order_size(market, buy_price)
+                sell_price = mid_price * (Decimal("1") + ask_spread)
+                sell_price = self._exchange.quantize_order_price(market, sell_price)
+                sell_size = self.base_order_size(market, sell_price)
+                proposals.append(Proposal(market, PriceSize(buy_price, buy_size), PriceSize(sell_price, sell_size)))
+            else:
+                self.logger().warning(f"Failed to get dynamic spread data for {market},back to static spread")
+        return proposals
+
     def total_port_value_in_token(self) -> Decimal:
         """
         Total portfolio value in self._token amount
+        中文注释：token金额的总投资组合价值
         """
         all_bals = self.adjusted_available_balances()
         port_value = all_bals.get(self._token, s_decimal_zero)
@@ -340,6 +391,7 @@ class LiquidityMiningStrategy(StrategyPyBase):
     def create_budget_allocation(self):
         """
         Create buy and sell budgets for every market
+        中文注释：为每个市场创建买入和卖出预算
         """
         self._sell_budgets = {m: s_decimal_zero for m in self._market_infos}
         self._buy_budgets = {m: s_decimal_zero for m in self._market_infos}
@@ -387,6 +439,7 @@ class LiquidityMiningStrategy(StrategyPyBase):
         """
         False if there are no buys or sells or if the difference between the proposed price and current price is less
         than the tolerance. The tolerance value is strict max, cannot be equal.
+        中文注释：如果没有买入或卖出，或者建议价格与当前价格之间的差异小于容差，则为False。容差值是严格的最大值，不能相等。
         """
         cur_buy = [o for o in cur_orders if o.is_buy]
         cur_sell = [o for o in cur_orders if not o.is_buy]
@@ -403,6 +456,7 @@ class LiquidityMiningStrategy(StrategyPyBase):
     def cancel_active_orders(self, proposals: List[Proposal]):
         """
         Cancel any orders that have an order age greater than self._max_order_age or if orders are not within tolerance
+        中文注释：取消任何订单，其订单年龄大于self._max_order_age，或者订单不在容差范围内
         """
         for proposal in proposals:
             to_cancel = False
@@ -422,6 +476,7 @@ class LiquidityMiningStrategy(StrategyPyBase):
         """
         Execute a list of proposals if the current timestamp is less than its refresh timestamp.
         Update the refresh timestamp.
+        中文注释：如果当前时间戳小于其刷新时间戳，则执行一系列提案。更新刷新时间戳。
         """
         for proposal in proposals:
             maker_order_type: OrderType = self._exchange.get_maker_order_type()
@@ -456,14 +511,19 @@ class LiquidityMiningStrategy(StrategyPyBase):
                 if not self._volatility[proposal.market].is_nan() and spread > self._spread:
                     adjusted_vol = self._volatility[proposal.market] * self._volatility_to_spread_multiplier
                     if adjusted_vol > self._spread:
-                        self.logger().info(f"({proposal.market}) Spread is widened to {spread:.2%} due to high "
-                                           f"market volatility")
+                        # self.logger().info(f"({proposal.market}) Spread is widened to {spread:.2%} due to high "
+                        #                    f"market volatility")
+                        self.logger().info(
+                            _("{market}) Spread is widened to {spread} due to high market volatility").format
+                            (market=proposal.market, spread=f"{spread:.2%}")
+                        )
 
                 self._refresh_times[proposal.market] = self.current_timestamp + self._order_refresh_time
 
     def is_token_a_quote_token(self):
         """
         Check if self._token is a quote token
+        中文注释：检查self._token是否是报价代币
         """
         quotes = self.all_quote_tokens()
         if len(quotes) == 1 and self._token in quotes:
@@ -473,6 +533,7 @@ class LiquidityMiningStrategy(StrategyPyBase):
     def all_base_tokens(self) -> Set[str]:
         """
         Get the base token (left-hand side) from all markets in this strategy
+        中文注释：从此策略中的所有市场获取基础代币（左侧）
         """
         tokens = set()
         for market in self._market_infos:
@@ -482,6 +543,7 @@ class LiquidityMiningStrategy(StrategyPyBase):
     def all_quote_tokens(self) -> Set[str]:
         """
         Get the quote token (right-hand side) from all markets in this strategy
+        中文注释：从此策略中的所有市场获取报价代币（右侧）
         """
         tokens = set()
         for market in self._market_infos:
@@ -491,6 +553,7 @@ class LiquidityMiningStrategy(StrategyPyBase):
     def all_tokens(self) -> Set[str]:
         """
         Return a list of all tokens involved in this strategy (base and quote)
+        中文注释：返回此策略中涉及的所有代币列表（基础和报价）
         """
         tokens = set()
         for market in self._market_infos:
@@ -500,7 +563,9 @@ class LiquidityMiningStrategy(StrategyPyBase):
     def adjusted_available_balances(self) -> Dict[str, Decimal]:
         """
         Calculates all available balances, account for amount attributed to orders and reserved balance.
+        中文注释：计算所有可用余额，考虑分配给订单和保留余额的金额。
         :return: a dictionary of token and its available balance
+        中文注释：返回代币及其可用余额的字典
         """
         tokens = self.all_tokens()
         adjusted_bals = {t: s_decimal_zero for t in tokens}
@@ -519,6 +584,7 @@ class LiquidityMiningStrategy(StrategyPyBase):
     def apply_inventory_skew(self, proposals: List[Proposal]):
         """
         Apply an inventory split between the quote and base asset
+        中文注释：在报价和基础资产之间应用库存分割
         """
         for proposal in proposals:
             buy_budget = self._buy_budgets[proposal.market]
@@ -538,6 +604,7 @@ class LiquidityMiningStrategy(StrategyPyBase):
     def did_fill_order(self, event):
         """
         Check if order has been completed, log it, notify the hummingbot application, and update budgets.
+        中文注释：检查订单是否已完成，记录它，通知hummingbot应用程序，并更新预算。
         """
         order_id = event.order_id
         market_info = self.order_tracker.get_shadow_market_pair_from_order_id(order_id)
@@ -560,6 +627,7 @@ class LiquidityMiningStrategy(StrategyPyBase):
     def update_mid_prices(self):
         """
         Query asset markets for mid price
+        中文注释：查询资产市场的中间价格
         """
         for market in self._market_infos:
             mid_price = self._market_infos[market].get_mid_price()
@@ -571,6 +639,7 @@ class LiquidityMiningStrategy(StrategyPyBase):
     def update_volatility(self):
         """
         Update volatility data from the market
+        中文注释：从市场更新波动性数据
         """
         self._volatility = {market: s_decimal_nan for market in self._market_infos}
         for market, mid_prices in self._mid_prices.items():
@@ -588,12 +657,14 @@ class LiquidityMiningStrategy(StrategyPyBase):
         if self._last_vol_reported < self.current_timestamp - self._volatility_interval:
             for market, vol in self._volatility.items():
                 if not vol.is_nan():
-                    self.logger().info(f"{market} volatility: {vol:.2%}")
+                    # self.logger().info(f"{market} volatility: {vol:.2%}")
+                    self.logger().info(_("{market} volatility: {vol}").format(market=market, vol=f"{vol:.2%}"))
             self._last_vol_reported = self.current_timestamp
 
     def notify_hb_app(self, msg: str):
         """
         Send a message to the hummingbot application
+        中文注释：向hummingbot应用程序发送消息
         """
         if self._hb_app_notification:
             super().notify_hb_app(msg)

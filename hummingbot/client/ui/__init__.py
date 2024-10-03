@@ -9,11 +9,11 @@ from prompt_toolkit.styles import Style
 from hummingbot import root_path
 from hummingbot.client.config.conf_migration import migrate_configs, migrate_non_secure_configs_only
 from hummingbot.client.config.config_crypt import BaseSecretsManager, store_password_verification
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.client.config.security import Security
 from hummingbot.client.settings import CONF_DIR_PATH
 
 sys.path.insert(0, str(root_path()))
-
 
 with open(realpath(join(dirname(__file__), '../../VERSION'))) as version_file:
     version = version_file.read().strip()
@@ -28,45 +28,44 @@ def login_prompt(secrets_manager_cls: Type[BaseSecretsManager], style: Style):
         else:
             show_welcome(style)
             password = input_dialog(
-                title="Set Password",
-                text="""
+                title=_("Set Password"),
+                text=_("""
         Create a password to protect your sensitive data.
-        This password is not shared with us nor with anyone else, so please store it securely.
-
-        Enter your new password:""",
+        This password is not shared with us nor with anyone else, so please store it securely.        
+        Enter your new password:"""),
                 password=True,
                 style=style).run()
             if password is None:
                 return None
             if password == str():
-                err_msg = "The password must not be empty."
+                err_msg = _("The password must not be empty.")
             else:
                 re_password = input_dialog(
-                    title="Set Password",
-                    text="Please re-enter your password:",
+                    title=_("Set Password"),
+                    text=_("Please re-enter your password:"),
                     password=True,
                     style=style).run()
                 if re_password is None:
                     return None
                 if password != re_password:
-                    err_msg = "Passwords entered do not match, please try again."
+                    err_msg = _("Passwords entered do not match, please try again.")
                 else:
                     secrets_manager = secrets_manager_cls(password)
                     store_password_verification(secrets_manager)
     else:
         password = input_dialog(
-            title="Welcome back to Hummingbot",
-            text="Enter your password:",
+            title=_("Welcome back to Hummingbot"),
+            text=_("Enter your password:"),
             password=True,
             style=style).run()
         if password is None:
             return None
         secrets_manager = secrets_manager_cls(password)
     if err_msg is None and not Security.login(secrets_manager):
-        err_msg = "Invalid password - please try again."
+        err_msg = _("Invalid password - please try again.")
     if err_msg is not None:
         message_dialog(
-            title='Error',
+            title=_('Error'),
             text=err_msg,
             style=style).run()
         return login_prompt(secrets_manager_cls, style)
@@ -87,71 +86,53 @@ def legacy_confs_exist() -> bool:
 
 def migrate_configs_prompt(secrets_manager_cls: Type[BaseSecretsManager], style: Style) -> BaseSecretsManager:
     message_dialog(
-        title='Configs Migration',
-        text="""
-
-
+        title=_('Configs Migration'),
+        text=_("""
             CONFIGS MIGRATION:
-
             We have recently refactored the way hummingbot handles configurations.
             To migrate your legacy configuration files to the new format,
             please enter your password on the following screen.
-
-                """,
+                """),
         style=style).run()
     password = input_dialog(
-        title="Input Password",
-        text="\n\nEnter your previous password:",
+        title=_("Input Password"),
+        text=_("\n\nEnter your previous password:"),
         password=True,
         style=style).run()
     if password is None:
-        raise ValueError("Wrong password.")
+        raise ValueError(_("Wrong password."))
     secrets_manager = secrets_manager_cls(password)
     errors = migrate_configs(secrets_manager)
     if len(errors) != 0:
         _migration_errors_dialog(errors, style)
     else:
         message_dialog(
-            title='Configs Migration Success',
-            text="""
-
-
-                            CONFIGS MIGRATION SUCCESS:
-
-                            The migration process was completed successfully.
-
-                                """,
+            title=_('Configs Migration Success'),
+            text=_("""CONFIGS MIGRATION SUCCESS:
+                    The migration process was completed successfully.
+                 """),
             style=style).run()
     return secrets_manager
 
 
 def migrate_non_secure_only_prompt(style: Style):
     message_dialog(
-        title='Configs Migration',
-        text="""
-
-
+        title=_('Configs Migration'),
+        text=_("""
                 CONFIGS MIGRATION:
-
                 We have recently refactored the way hummingbot handles configurations.
                 We will now attempt to migrate any legacy config files to the new format.
-
-                    """,
+            """),
         style=style).run()
     errors = migrate_non_secure_configs_only()
     if len(errors) != 0:
         _migration_errors_dialog(errors, style)
     else:
         message_dialog(
-            title='Configs Migration Success',
-            text="""
-
-
-                            CONFIGS MIGRATION SUCCESS:
-
-                            The migration process was completed successfully.
-
-                                """,
+            title=_('Configs Migration Success'),
+            text=_("""CONFIGS MIGRATION SUCCESS:
+                   The migration process was completed successfully.
+                  """),
             style=style).run()
 
 
@@ -159,68 +140,41 @@ def _migration_errors_dialog(errors, style: Style):
     padding = "\n                    "
     errors_str = padding + padding.join(errors)
     message_dialog(
-        title='Configs Migration Errors',
-        text=f"""
-
-
+        title=_('Configs Migration Errors'),
+        text=_("""
                 CONFIGS MIGRATION ERRORS:
-
                 {errors_str}
-
-                    """,
+             """).format(errors_str=errors_str),
         style=style).run()
 
 
 def show_welcome(style: Style):
     message_dialog(
-        title='Welcome to Hummingbot',
-        text="""
-
-    ██╗  ██╗██╗   ██╗███╗   ███╗███╗   ███╗██╗███╗   ██╗ ██████╗ ██████╗  ██████╗ ████████╗
-    ██║  ██║██║   ██║████╗ ████║████╗ ████║██║████╗  ██║██╔════╝ ██╔══██╗██╔═══██╗╚══██╔══╝
-    ███████║██║   ██║██╔████╔██║██╔████╔██║██║██╔██╗ ██║██║  ███╗██████╔╝██║   ██║   ██║
-    ██╔══██║██║   ██║██║╚██╔╝██║██║╚██╔╝██║██║██║╚██╗██║██║   ██║██╔══██╗██║   ██║   ██║
-    ██║  ██║╚██████╔╝██║ ╚═╝ ██║██║ ╚═╝ ██║██║██║ ╚████║╚██████╔╝██████╔╝╚██████╔╝   ██║
-    ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚═╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚═════╝  ╚═════╝    ╚═╝
-
-    =======================================================================================
-
+        title=_('Welcome to Hummingbot'),
+        text=_("""
     Version: {version}
-    Codebase: https://github.com/hummingbot/hummingbot
-
-
-        """.format(version=version),
+        """).format(version=version),
         style=style).run()
     message_dialog(
-        title='Important Warning',
-        text="""
-
-
+        title=_('Important Warning'),
+        text=_("""
     PLEASE READ THIS CAREFULLY BEFORE USING HUMMINGBOT:
-
     Hummingbot is a free and open source software client that helps you build algorithmic
     crypto trading strategies.
-
     Algorithmic crypto trading is a risky activity. You will be building a "bot" that
     automatically places orders and trades based on parameters that you set. Please take
     the time to understand how each strategy works before you risk real capital with it.
     You are solely responsible for the trades that you perform using Hummingbot.
-
-        """,
+        """),
         style=style).run()
     message_dialog(
-        title='Important Warning',
-        text="""
-
-
+        title=_('Important Warning'),
+        text=_("""
     SET A SECURE PASSWORD:
-
     To use Hummingbot, you will need to give it access to your crypto assets by entering
     your exchange API keys and/or wallet private keys. These keys are not shared with
     anyone, including us.
-
     On the next screen, you will set a password to protect these keys and other sensitive
     data. Please store this password safely since there is no way to reset it.
-
-        """,
+        """),
         style=style).run()

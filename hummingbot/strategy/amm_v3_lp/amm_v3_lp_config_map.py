@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from hummingbot.client.config.config_validators import validate_decimal, validate_market_trading_pair
 from hummingbot.client.config.config_var import ConfigVar
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.client.settings import (
     AllConnectorSettings,
     ConnectorType,
@@ -17,7 +18,7 @@ def exchange_on_validated(value: str):
 def validate_connector(value: str):
     connector = AllConnectorSettings.get_connector_settings().get(value, None)
     if not connector or connector.type != ConnectorType.AMM_LP:
-        return "Only AMM_LP connectors allowed."
+        return _("Only AMM_LP connectors allowed.")
 
 
 def market_validator(value: str) -> None:
@@ -33,8 +34,10 @@ def market_on_validated(value: str) -> None:
 def market_prompt() -> str:
     connector = amm_v3_lp_config_map.get("connector").value
     example = AllConnectorSettings.get_example_pairs().get(connector)
-    return "Enter the trading pair you would like to provide liquidity on {}>>> ".format(
-        f"(e.g. {example}) " if example else "")
+    # return "Enter the trading pair you would like to provide liquidity on {}>>> ".format(
+    #     f"(e.g. {example}) " if example else "")
+    return _("Enter the trading pair you would like to provide liquidity on {example}>>> ").format(
+        example=f"(e.g. {example}) " if example else "")
 
 
 amm_v3_lp_config_map = {
@@ -44,7 +47,7 @@ amm_v3_lp_config_map = {
         default="amm_v3_lp"),
     "connector": ConfigVar(
         key="connector",
-        prompt="Enter name of LP connector >>> ",
+        prompt=_("Enter name of LP connector >>> "),
         validator=validate_connector,
         on_validated=exchange_on_validated,
         prompt_on_new=True),
@@ -56,7 +59,7 @@ amm_v3_lp_config_map = {
         on_validated=market_on_validated),
     "fee_tier": ConfigVar(
         key="fee_tier",
-        prompt="On which fee tier do you want to provide liquidity on? (LOWEST/LOW/MEDIUM/HIGH) ",
+        prompt=_("On which fee tier do you want to provide liquidity on? (LOWEST/LOW/MEDIUM/HIGH) "),
         validator=lambda s: None if s in {"LOWEST",
                                           "LOW",
                                           "MEDIUM",
@@ -66,20 +69,20 @@ amm_v3_lp_config_map = {
         prompt_on_new=True),
     "price_spread": ConfigVar(
         key="price_spread",
-        prompt="How wide around current pool price and/or last created positions do you want new positions to span? (Enter 1 to indicate 1%)  >>> ",
+        prompt=_("How wide around current pool price and/or last created positions do you want new positions to span? (Enter 1 to indicate 1%)  >>> "),
         type_str="decimal",
         validator=lambda v: validate_decimal(v, Decimal("0"), inclusive=False),
         default=Decimal("1"),
         prompt_on_new=True),
     "amount": ConfigVar(
         key="amount",
-        prompt="Enter the maximum value(in terms of base asset) to use for providing liquidity. >>>",
+        prompt=_("Enter the maximum value(in terms of base asset) to use for providing liquidity. >>>"),
         prompt_on_new=True,
         validator=lambda v: validate_decimal(v, Decimal("0"), inclusive=False),
         type_str="decimal"),
     "min_profitability": ConfigVar(
         key="min_profitability",
-        prompt="What is the minimum unclaimed fees an out of range position must have before it is closed? (in terms of base asset) >>>",
+        prompt=_("What is the minimum unclaimed fees an out of range position must have before it is closed? (in terms of base asset) >>>"),
         prompt_on_new=False,
         validator=lambda v: validate_decimal(v, Decimal("0"), inclusive=False),
         default=Decimal("1"),

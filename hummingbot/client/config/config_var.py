@@ -4,12 +4,10 @@ of the bot. The client provides a screen prompt to the user, then the user provi
 by ConfigVar.
 """
 
-from typing import (
-    Optional,
-    Callable,
-    Union,
-)
 import inspect
+from typing import Callable, Optional, Union
+
+from hummingbot.client.config.i18n import gettext as _
 
 # function types passed into ConfigVar
 RequiredIf = Callable[[str], Optional[bool]]
@@ -71,7 +69,8 @@ class ConfigVar:
         assert callable(self._validator)
         assert callable(self._on_validated)
         if self.required and (value is None or value == ""):
-            return "Value is required."
+            # return "Value is required."
+            return _("Value is required.")
         err_msg = None
         if inspect.iscoroutinefunction(self._validator):
             err_msg = await self._validator(value)

@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Dict, Optional
 import pandas as pd
 
 from hummingbot.client.config.config_helpers import ClientConfigAdapter
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.client.config.security import Security
 from hummingbot.client.settings import AllConnectorSettings
 from hummingbot.client.ui.interface_utils import format_df_for_printout
@@ -30,14 +31,16 @@ class ConnectCommand:
                                connector_name):
         # instruct users to use gateway connect if connector is a gateway connector
         if AllConnectorSettings.get_connector_settings()[connector_name].uses_gateway_generic_connector():
-            self.notify("This is a gateway connector. Use `gateway connect` command instead.")
+            # self.notify("This is a gateway connector. Use `gateway connect` command instead.")
+            self.notify(_("This is a gateway connector. Use `gateway connect` command instead."))
             return
 
         self.app.clear_input()
         self.placeholder_mode = True
         self.app.hide_input = True
         if connector_name == "kraken":
-            self.notify("Reminder: Please ensure your Kraken API Key Nonce Window is at least 10.")
+            # self.notify("Reminder: Please ensure your Kraken API Key Nonce Window is at least 10.")
+            self.notify(_("Reminder: Please ensure your Kraken API Key Nonce Window is at least 10."))
         connector_config = ClientConfigAdapter(AllConnectorSettings.get_connector_config_keys(connector_name))
         if Security.connector_config_file_exists(connector_name):
             await Security.wait_til_decryption_done()
@@ -47,10 +50,16 @@ class ConnectCommand:
             if api_key_config:
                 api_key = api_key_config[0]
                 prompt = (
-                    f"Would you like to replace your existing {connector_name} API key {api_key} (Yes/No)? >>> "
+                    # f"Would you like to replace your existing {connector_name} API key {api_key} (Yes/No)? >>> "
+                    _("Would you like to replace your existing {connector_name} API key {api_key} (Yes/No)? >>> ").format(
+                        connector_name=connector_name, api_key=api_key
+                    )
                 )
             else:
-                prompt = f"Would you like to replace your existing {connector_name} key (Yes/No)? >>> "
+                # prompt = f"Would you like to replace your existing {connector_name} key (Yes/No)? >>> "
+                prompt = _("Would you like to replace your existing {connector_name} key (Yes/No)? >>> ").format(
+                    connector_name=connector_name
+                )
             answer = await self.app.prompt(prompt=prompt)
             if self.app.to_stop_config:
                 self.app.to_stop_config = False
@@ -66,13 +75,15 @@ class ConnectCommand:
 
     async def show_connections(self  # type: HummingbotApplication
                                ):
-        self.notify("\nTesting connections, please wait...")
+        # self.notify("\nTesting connections, please wait...")
+        self.notify(_("\nTesting connections, please wait..."))
         df, failed_msgs = await self.connection_df()
         lines = ["    " + line for line in format_df_for_printout(
             df,
             table_format=self.client_config_map.tables_format).split("\n")]
         if failed_msgs:
-            lines.append("\nFailed connections:")
+            # lines.append("\nFailed connections:")
+            lines.append(_("\nFailed connections:"))
             lines.extend(["    " + k + ": " + v for k, v in failed_msgs.items()])
         self.notify("\n".join(lines))
 
@@ -88,7 +99,8 @@ class ConnectCommand:
                 UserBalances.instance().update_exchanges(self.client_config_map, reconnect=True), network_timeout
             )
         except asyncio.TimeoutError:
-            self.notify("\nA network error prevented the connection table to populate. See logs for more details.")
+            # self.notify("\nA network error prevented the connection table to populate. See logs for more details.")
+            self.notify(_("\nA network error prevented the connection table to populate. See logs for more details."))
             raise
         for option in sorted(OPTIONS):
             keys_added = "No"
@@ -121,8 +133,9 @@ class ConnectCommand:
                 network_timeout,
             )
         except asyncio.TimeoutError:
-            self.notify(
-                "\nA network error prevented the connection to complete. See logs for more details.")
+            # self.notify(
+            #     "\nA network error prevented the connection to complete. See logs for more details.")
+            self.notify(_("\nA network error prevented the connection to complete. See logs for more details."))
             self.placeholder_mode = False
             self.app.hide_input = False
             self.app.change_prompt(prompt=">>> ")
@@ -140,9 +153,11 @@ class ConnectCommand:
         Security.update_secure_config(connector_config)
         err_msg = await self.validate_n_connect_connector(connector_name)
         if err_msg is None:
-            self.notify(f"\nYou are now connected to {connector_name}.")
+            # self.notify(f"\nYou are now connected to {connector_name}.")
+            self.notify(_("\nYou are now connected to {connector_name}.").format(connector_name=connector_name))
             safe_ensure_future(TradingPairFetcher.get_instance(client_config_map=ClientConfigAdapter).fetch_all(client_config_map=ClientConfigAdapter))
         else:
-            self.notify(f"\nError: {err_msg}")
+            # self.notify(f"\nError: {err_msg}")
+            self.notify(_("\nError: {err_msg}").format(err_msg=err_msg))
             if previous_keys is not None:
                 Security.update_secure_config(original_config)

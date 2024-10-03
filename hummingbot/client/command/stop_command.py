@@ -3,6 +3,7 @@ import platform
 import threading
 from typing import TYPE_CHECKING
 
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.core.rate_oracle.rate_oracle import RateOracle
 from hummingbot.core.utils.async_utils import safe_ensure_future
 from hummingbot.strategy.script_strategy_base import ScriptStrategyBase
@@ -21,8 +22,10 @@ class StopCommand:
 
     async def stop_loop(self,  # type: HummingbotApplication
                         skip_order_cancellation: bool = False):
-        self.logger().info("stop command initiated.")
-        self.notify("\nWinding down...")
+        # self.logger().info("stop command initiated.")
+        self.logger().info(_("stop command initiated."))
+        # self.notify("\nWinding down...")
+        self.notify(_("Winding down..."))
 
         # Restore App Nap on macOS.
         if platform.system() == "Darwin":

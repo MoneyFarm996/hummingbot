@@ -19,7 +19,16 @@ class BacktestMM(ScriptStrategyBase):
     After processing the user-defined backtesting parameters through historical OHLCV candles, it calculates a summary
     table displayed in 'status' and saves the data to a CSV file.
 
+    BotCamp 队列：4
+    设计模板：https://www.notion.so/hummingbot-foundation/Backtestable-Market-Making-Stategy-95c0d17e4042485bb90b7b2914af7f68?pvs=4
+    视频：https://www.loom.com/share/e18380429e9443ceb1ef86eb131c14a2
+    描述：该机器人使用币安蜡烛数据源为做市策略实现了一个更简单的回测器。
+    通过历史 OHLCV 蜡烛图处理用户定义的回测参数后，计算出一个汇总
+    表显示在“状态”中，并将数据保存到 CSV 文件中。
+
     You may need to run 'balance paper [asset] [amount]' beforehand to set the initial balances used for backtesting.
+    您可能需要事先运行 'balance paper [asset] [amount]' 来设置用于回测的初始余额。
+
     """
 
     # User-defined parameters

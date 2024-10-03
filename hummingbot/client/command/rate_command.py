@@ -2,6 +2,7 @@ import threading
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.connector.utils import split_hb_trading_pair, validate_trading_pair
 from hummingbot.core.rate_oracle.rate_oracle import RateOracle
 from hummingbot.core.utils.async_utils import safe_ensure_future
@@ -31,18 +32,21 @@ class RateCommand:
                         pair: str,
                         ):
         if not validate_trading_pair(pair):
-            self.notify(f"Invalid trading pair {pair}")
+            # self.notify(f"Invalid trading pair {pair}")
+            self.notify(_("Invalid trading pair {pair}"))
         else:
             try:
                 msg = await self.oracle_rate_msg(pair)
             except OracleRateUnavailable:
-                msg = "Rate is not available."
+                # msg = "Rate is not available."
+                msg = _("Rate is not available.")
             self.notify(msg)
 
     async def oracle_rate_msg(self,  # type: HummingbotApplication
                               pair: str):
         if not validate_trading_pair(pair):
-            self.notify(f"Invalid trading pair {pair}")
+            # self.notify(f"Invalid trading pair {pair}")
+            return _("Invalid trading pair {pair}")
         else:
             pair = pair.upper().strip('\"').strip("'")
             rate = await RateOracle.get_instance().rate_async(pair)
@@ -55,12 +59,14 @@ class RateCommand:
                                token: str
                                ):
         if "-" in token:
-            self.notify(f"Expected a single token but got a pair {token}")
+            # self.notify(f"Expected a single token but got a pair {token}")
+            self.notify(_("Expected a single token but got a pair {token}").format(token=token))
         else:
             self.notify(f"Source: {RateOracle.get_instance().source.name}")
             rate = await RateOracle.get_instance().get_rate(base_token=token)
             if rate is None:
-                self.notify("Rate is not available.")
+                # self.notify("Rate is not available.")
+                self.notify(_("Rate is not available."))
                 return
             global_token = self.client_config_map.global_token.global_token_name
             token_symbol = self.client_config_map.global_token.global_token_symbol

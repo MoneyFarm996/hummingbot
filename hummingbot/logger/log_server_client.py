@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional
 
 import aiohttp
 
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.core.network_base import NetworkBase
 from hummingbot.core.network_iterator import NetworkStatus
 from hummingbot.core.utils.async_retry import async_retry
@@ -42,24 +43,30 @@ class LogServerClient(NetworkBase):
     async def send_log(self, session: aiohttp.ClientSession, request_dict: Dict[str, Any]):
         async with session.request(request_dict["method"], request_dict["url"], **request_dict["request_obj"]) as resp:
             resp_text = await resp.text()
-            self.logger().debug(f"Sent logs: {resp.status} {resp.url} {resp_text} ",
+            # self.logger().debug(f"Sent logs: {resp.status} {resp.url} {resp_text} ",
+            #                     extra={"do_not_send": True})
+            self.logger().debug(_("Sent logs: %s %s %s ") % (resp.status, resp.url, resp_text),
                                 extra={"do_not_send": True})
             if resp.status != 200 and resp.status not in {404, 405, 400}:
-                raise EnvironmentError("Failed sending logs to log server.")
+                # raise EnvironmentError("Failed sending logs to log server.")
+                raise EnvironmentError(_("Failed sending logs to log server."))
 
     async def consume_queue(self, session):
         while True:
             try:
                 req = await self.queue.get()
-                self.logger().debug(f"Remote logging payload: {req}")
+                # self.logger().debug(f"Remote logging payload: {req}")
+                self.logger().debug(_("Remote logging payload: {}").format(req))
                 await self.send_log(session, req)
             except asyncio.CancelledError:
                 raise
             except aiohttp.ClientError:
-                self.logger().network("Network error sending logs.", exc_info=True, extra={"do_not_send": True})
+                # self.logger().network("Network error sending logs.", exc_info=True, extra={"do_not_send": True})
+                self.logger().network(_("Network error sending logs."), exc_info=True, extra={"do_not_send": True})
                 return
             except Exception:
-                self.logger().network("Unexpected error sending logs.", exc_info=True, extra={"do_not_send": True})
+                # self.logger().network("Unexpected error sending logs.", exc_info=True, extra={"do_not_send": True})
+                self.logger().network(_("Unexpected error sending logs."), exc_info=True, extra={"do_not_send": True})
                 return
 
     async def request_loop(self):
@@ -72,7 +79,9 @@ class LogServerClient(NetworkBase):
             except asyncio.CancelledError:
                 raise
             except Exception:
-                self.logger().network("Unexpected error running logging task.",
+                # self.logger().network("Unexpected error running logging task.",
+                #                       exc_info=True, extra={"do_not_send": True})
+                self.logger().network(_("Unexpected error running logging task."),
                                       exc_info=True, extra={"do_not_send": True})
                 await asyncio.sleep(5.0)
 
@@ -91,7 +100,8 @@ class LogServerClient(NetworkBase):
                                              connector=aiohttp.TCPConnector(verify_ssl=False)) as session:
                 async with session.get(self.log_server_url) as resp:
                     if resp.status != 200:
-                        raise Exception("Log proxy server is down.")
+                        # raise Exception("Log proxy server is down.")
+                        raise Exception(_("Log proxy server is down."))
         except asyncio.CancelledError:
             raise
         except Exception:

@@ -8,6 +8,7 @@
 .PHONY: uninstall
 .PHONY: clean
 .PHONY: build
+.PHONY: i18n
 
 test:
 	coverage run -m nose \
@@ -49,3 +50,6 @@ uninstall:
 
 build:
 	./compile
+
+i18n:
+    ./i18n

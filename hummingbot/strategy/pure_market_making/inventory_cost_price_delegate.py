@@ -10,6 +10,9 @@ s_decimal_0 = Decimal("0")
 
 
 class InventoryCostPriceDelegate:
+    """
+    该类负责根据库存成本模型计算库存价格。
+    """
     def __init__(self, sql: SQLConnectionManager, trading_pair: str) -> None:
         self.base_asset, self.quote_asset = trading_pair.split("-")
         self.sql_manager = sql
@@ -19,6 +22,10 @@ class InventoryCostPriceDelegate:
         return True
 
     def get_price(self) -> Optional[Decimal]:
+        """
+        从数据库中获取库存价格
+        :return:
+        """
         with self.sql_manager.get_new_session() as session:
             with session.begin():
                 record = InventoryCost.get_record(
@@ -35,6 +42,11 @@ class InventoryCostPriceDelegate:
                 return Decimal(price)
 
     def process_order_fill_event(self, fill_event: OrderFilledEvent) -> None:
+        """
+        处理订单成交事件
+        :param fill_event:
+        :return:
+        """
         base_asset, quote_asset = fill_event.trading_pair.split("-")
         quote_volume = fill_event.amount * fill_event.price
         base_volume = fill_event.amount

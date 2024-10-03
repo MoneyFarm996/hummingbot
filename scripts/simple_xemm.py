@@ -44,6 +44,10 @@ class SimpleXEMM(ScriptStrategyBase):
     A simplified version of Hummingbot cross-exchange market making strategy, this bot makes a market on
     the maker pair and hedges any filled trades in the taker pair. If the spread (difference between maker order price
     and taker hedge price) dips below min_spread, the bot refreshes the order
+    描述：
+    Hummingbot 跨交易所做市策略的简化版本，该机器人在
+    做市商对并对接受者对中任何已成交的交易进行对冲。如果点差（制造商订单价格之间的差额
+    和接受者对冲价格）低于 min_spread，机器人刷新订单
     """
 
     buy_order_placed = False
@@ -140,6 +144,7 @@ class SimpleXEMM(ScriptStrategyBase):
     def exchanges_df(self) -> pd.DataFrame:
         """
         Return a custom data frame of prices on maker vs taker exchanges for display purposes
+        返回制造商与接受者交易所价格的自定义数据框架以用于显示目的
         """
         mid_price = self.connectors[self.config.maker_exchange].get_mid_price(self.config.maker_pair)
         maker_buy_result = self.connectors[self.config.maker_exchange].get_price_for_volume(self.config.maker_pair, True, self.config.order_amount)
@@ -174,6 +179,7 @@ class SimpleXEMM(ScriptStrategyBase):
     def active_orders_df(self) -> pd.DataFrame:
         """
         Returns a custom data frame of all active maker orders for display purposes
+        返回所有活动制造商订单的自定义数据框以供显示目的
         """
         columns = ["Exchange", "Market", "Side", "Price", "Amount", "Spread Mid", "Spread Cancel", "Age"]
         data = []
@@ -207,6 +213,8 @@ class SimpleXEMM(ScriptStrategyBase):
         """
         Returns status of the current strategy on user balances and current active orders. This function is called
         when status command is issued. Override this function to create custom status display output.
+        返回用户余额和当前活动订单的当前策略的状态。这个函数称为
+        当发出状态命令时。重写此函数以创建自定义状态显示输出。
         """
         if not self.ready_to_trade:
             return "Market connectors are not ready."

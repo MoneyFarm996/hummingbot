@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, List, Optional, Set, Tuple
 import pandas as pd
 
 from hummingbot.client.command.gateway_command import GatewayCommand
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.client.performance import PerformanceMetrics
 from hummingbot.client.settings import MAXIMUM_TRADE_FILLS_DISPLAY_OUTPUT, AllConnectorSettings
 from hummingbot.client.ui.interface_utils import format_df_for_printout
@@ -38,7 +39,8 @@ class HistoryCommand:
             return
 
         if self.strategy_file_name is None:
-            self.notify("\n  Please first import a strategy config file of which to show historical performance.")
+            # self.notify("\n  Please first import a strategy config file of which to show historical performance.")
+            self.notify(_("\n  Please first import a strategy config file of which to show historical performance."))
             return
         start_time = get_timestamp(days) if days > 0 else self.init_time
         with self.trade_fill_db.get_new_session() as session:
@@ -47,7 +49,8 @@ class HistoryCommand:
                 session=session,
                 config_file_path=self.strategy_file_name)
             if not trades:
-                self.notify("\n  No past trades to report.")
+                # self.notify("\n  No past trades to report.")
+                self.notify(_("\n  No past trades to report."))
                 return
             if verbose:
                 self.list_trades(start_time)
@@ -80,8 +83,11 @@ class HistoryCommand:
             try:
                 cur_balances = await asyncio.wait_for(self.get_current_balances(market), network_timeout)
             except asyncio.TimeoutError:
+                # self.notify(
+                #     "\nA network error prevented the balances retrieval to complete. See logs for more details."
+                # )
                 self.notify(
-                    "\nA network error prevented the balances retrieval to complete. See logs for more details."
+                    _("\nA network error prevented the balances retrieval to complete. See logs for more details.")
                 )
                 raise
             perf = await PerformanceMetrics.create(symbol, cur_trades, cur_balances)
@@ -90,7 +96,8 @@ class HistoryCommand:
             return_pcts.append(perf.return_pct)
         avg_return = sum(return_pcts) / len(return_pcts) if len(return_pcts) > 0 else s_decimal_0
         if display_report and len(return_pcts) > 1:
-            self.notify(f"\nAveraged Return = {avg_return:.2%}")
+            # self.notify(f"\nAveraged Return = {avg_return:.2%}")
+            self.notify(_("\nAveraged Return = {avg_return}").format(avg_return=f"{avg_return:.2%}"))
         return avg_return
 
     async def get_current_balances(self,  # type: HummingbotApplication
@@ -236,8 +243,11 @@ class HistoryCommand:
             # Check if number of trades exceed maximum number of trades to display
             if len(df) > MAXIMUM_TRADE_FILLS_DISPLAY_OUTPUT:
                 df = df[:MAXIMUM_TRADE_FILLS_DISPLAY_OUTPUT]
+                # self.notify(
+                #     f"\n  Showing last {MAXIMUM_TRADE_FILLS_DISPLAY_OUTPUT} trades in the current session.")
                 self.notify(
-                    f"\n  Showing last {MAXIMUM_TRADE_FILLS_DISPLAY_OUTPUT} trades in the current session.")
+                    _("\n  Showing last {MAXIMUM_TRADE_FILLS_DISPLAY_OUTPUT} trades in the current session.").format(
+                        MAXIMUM_TRADE_FILLS_DISPLAY_OUTPUT=MAXIMUM_TRADE_FILLS_DISPLAY_OUTPUT))
             df_lines = format_df_for_printout(df, self.client_config_map.tables_format).split("\n")
             lines.extend(["", "  Recent trades:"] +
                          ["    " + line for line in df_lines])

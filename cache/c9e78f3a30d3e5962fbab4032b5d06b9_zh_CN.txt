@@ -1,0 +1,1 @@
+基于Maker报价资产的Maker和Taker交易对之间的固定兑换率。

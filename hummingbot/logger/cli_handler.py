@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
+from datetime import datetime
 from logging import StreamHandler
 from typing import Optional
-from datetime import datetime
+
+from hummingbot.client.config.i18n import gettext as _
 
 
 class CLIHandler(StreamHandler):
@@ -16,6 +18,6 @@ class CLIHandler(StreamHandler):
         retval = f'{datetime.fromtimestamp(record.created).strftime("%H:%M:%S")} - {record.name.split(".")[-1]} - ' \
                  f'{record.getMessage()}'
         if exc_info:
-            retval += " (See log file for stack trace dump)"
+            retval += _(" (See log file for stack trace dump)")
         record.exc_info = exc_info
         return retval

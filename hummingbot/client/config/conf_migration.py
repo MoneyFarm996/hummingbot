@@ -24,6 +24,7 @@ from hummingbot.client.config.client_config_map import (
 from hummingbot.client.config.config_crypt import BaseSecretsManager, store_password_verification
 from hummingbot.client.config.config_data_types import BaseConnectorConfigMap
 from hummingbot.client.config.config_helpers import ClientConfigAdapter, save_to_yml
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.client.config.security import Security
 from hummingbot.client.settings import CLIENT_CONFIG_PATH, CONF_DIR_PATH, STRATEGIES_CONF_DIR_PATH
 from hummingbot.strategy.avellaneda_market_making.avellaneda_market_making_config_map_pydantic import (
@@ -40,7 +41,7 @@ strategies_conf_dir_path = STRATEGIES_CONF_DIR_PATH
 
 
 def migrate_configs(secrets_manager: BaseSecretsManager) -> List[str]:
-    logging.getLogger().info("Starting conf migration.")
+    logging.getLogger().info(_("Starting conf migration."))
     errors = backup_existing_dir()
     if len(errors) == 0:
         errors = migrate_global_config()
@@ -48,22 +49,22 @@ def migrate_configs(secrets_manager: BaseSecretsManager) -> List[str]:
             errors.extend(migrate_strategy_confs_paths())
             errors.extend(migrate_connector_confs(secrets_manager))
             store_password_verification(secrets_manager)
-            logging.getLogger().info("\nConf migration done.")
+            logging.getLogger().info(_("\nConf migration done."))
     else:
-        logging.getLogger().error("\nConf migration failed.")
+        logging.getLogger().error(_("\nConf migration failed."))
     return errors
 
 
 def migrate_non_secure_configs_only() -> List[str]:
-    logging.getLogger().info("Starting strategies conf migration.")
+    logging.getLogger().info(_("Starting strategies conf migration."))
     errors = backup_existing_dir()
     if len(errors) == 0:
         errors = migrate_global_config()
         if len(errors) == 0:
             errors.extend(migrate_strategy_confs_paths())
-            logging.getLogger().info("\nConf migration done.")
+            logging.getLogger().info(_("\nConf migration done."))
     else:
-        logging.getLogger().error("\nConf migration failed.")
+        logging.getLogger().error(_("\nConf migration failed."))
     return errors
 
 

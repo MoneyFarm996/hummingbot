@@ -8,6 +8,7 @@ from hummingbot.client.config.config_validators import (
     validate_market_trading_pair,
 )
 from hummingbot.client.config.config_var import ConfigVar
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.client.settings import AllConnectorSettings, required_exchanges, requried_connector_trading_pairs
 
 
@@ -36,21 +37,26 @@ def perpetual_market_on_validated(value: str) -> None:
 def spot_market_prompt() -> str:
     connector = spot_perpetual_arbitrage_config_map.get("spot_connector").value
     example = AllConnectorSettings.get_example_pairs().get(connector)
-    return "Enter the token trading pair you would like to trade on %s%s >>> " \
-           % (connector, f" (e.g. {example})" if example else "")
+    # return "Enter the token trading pair you would like to trade on %s%s >>> " \
+    #        % (connector, f" (e.g. {example})" if example else "")
+    return _(f"Enter the token trading pair you would like to trade on {connector}{example} >>> ").format(
+        connector=connector, example=f" (e.g. {example})" if example else "")
 
 
 def perpetual_market_prompt() -> str:
     connector = spot_perpetual_arbitrage_config_map.get("perpetual_connector").value
     example = AllConnectorSettings.get_example_pairs().get(connector)
-    return "Enter the token trading pair you would like to trade on %s%s >>> " \
-           % (connector, f" (e.g. {example})" if example else "")
+    # return "Enter the token trading pair you would like to trade on %s%s >>> " \
+    #        % (connector, f" (e.g. {example})" if example else "")
+    return _(f"Enter the token trading pair you would like to trade on {connector}{example} >>> ").format(
+        connector=connector, example=f" (e.g. {example})" if example else "")
 
 
 def order_amount_prompt() -> str:
     trading_pair = spot_perpetual_arbitrage_config_map["spot_market"].value
     base_asset, quote_asset = trading_pair.split("-")
-    return f"What is the amount of {base_asset} per order? >>> "
+    # return f"What is the amount of {base_asset} per order? >>> "
+    return _("What is the amount of {base_asset} per order? >>> ").format(base_asset=base_asset)
 
 
 spot_perpetual_arbitrage_config_map = {
@@ -60,7 +66,7 @@ spot_perpetual_arbitrage_config_map = {
         default="spot_perpetual_arbitrage"),
     "spot_connector": ConfigVar(
         key="spot_connector",
-        prompt="Enter a spot connector (Exchange/AMM/CLOB) >>> ",
+        prompt=_("Enter a spot connector (Exchange/AMM/CLOB) >>> "),
         prompt_on_new=True,
         validator=validate_connector,
         on_validated=exchange_on_validated),
@@ -72,7 +78,7 @@ spot_perpetual_arbitrage_config_map = {
         on_validated=spot_market_on_validated),
     "perpetual_connector": ConfigVar(
         key="perpetual_connector",
-        prompt="Enter a derivative connector >>> ",
+        prompt=_("Enter a derivative connector >>> "),
         prompt_on_new=True,
         validator=validate_derivative,
         on_validated=exchange_on_validated),
@@ -89,47 +95,48 @@ spot_perpetual_arbitrage_config_map = {
         prompt_on_new=True),
     "perpetual_leverage": ConfigVar(
         key="perpetual_leverage",
-        prompt="How much leverage would you like to use on the perpetual exchange? (Enter 1 to indicate 1X) >>> ",
+        prompt=_("How much leverage would you like to use on the perpetual exchange? (Enter 1 to indicate 1X) >>> "),
         type_str="int",
         default=1,
-        validator= lambda v: validate_int(v),
+        validator=lambda v: validate_int(v),
         prompt_on_new=True),
     "min_opening_arbitrage_pct": ConfigVar(
         key="min_opening_arbitrage_pct",
-        prompt="What is the minimum arbitrage percentage between the spot and perpetual market price before opening "
-               "an arbitrage position? (Enter 1 to indicate 1%) >>> ",
+        prompt=_("What is the minimum arbitrage percentage between the spot and perpetual market price before opening "
+                 "an arbitrage position? (Enter 1 to indicate 1%) >>> "),
         prompt_on_new=True,
         default=Decimal("1"),
         validator=lambda v: validate_decimal(v, Decimal(-100), 100, inclusive=False),
         type_str="decimal"),
     "min_closing_arbitrage_pct": ConfigVar(
         key="min_closing_arbitrage_pct",
-        prompt="What is the minimum arbitrage percentage between the spot and perpetual market price before closing "
-               "an existing arbitrage position? (Enter 1 to indicate 1%) (This can be negative value to close out the "
-               "position with lesser profit at higher chance of closing) >>> ",
+        prompt=_("What is the minimum arbitrage percentage between the spot and perpetual market price before closing "
+                 "an existing arbitrage position? (Enter 1 to indicate 1%) (This can be negative value to close out the "
+                 "position with lesser profit at higher chance of closing) >>> "),
         prompt_on_new=True,
         default=Decimal("-0.1"),
         validator=lambda v: validate_decimal(v, Decimal(-100), 100, inclusive=False),
         type_str="decimal"),
     "spot_market_slippage_buffer": ConfigVar(
         key="spot_market_slippage_buffer",
-        prompt="How much buffer do you want to add to the price to account for slippage for orders on the spot market "
-               "(Enter 1 for 1%)? >>> ",
+        prompt=_(
+            "How much buffer do you want to add to the price to account for slippage for orders on the spot market "
+            "(Enter 1 for 1%)? >>> "),
         prompt_on_new=True,
         default=Decimal("0.05"),
         validator=lambda v: validate_decimal(v),
         type_str="decimal"),
     "perpetual_market_slippage_buffer": ConfigVar(
         key="perpetual_market_slippage_buffer",
-        prompt="How much buffer do you want to add to the price to account for slippage for orders on the perpetual "
-               "market (Enter 1 for 1%)? >>> ",
+        prompt=_("How much buffer do you want to add to the price to account for slippage for orders on the perpetual "
+                 "market (Enter 1 for 1%)? >>> "),
         prompt_on_new=True,
         default=Decimal("0.05"),
         validator=lambda v: validate_decimal(v),
         type_str="decimal"),
     "next_arbitrage_opening_delay": ConfigVar(
         key="next_arbitrage_opening_delay",
-        prompt="How long do you want the strategy to wait before opening the next arbitrage position (in seconds)?",
+        prompt=_("How long do you want the strategy to wait before opening the next arbitrage position (in seconds)?"),
         type_str="float",
         validator=lambda v: validate_decimal(v, min_value=0, inclusive=False),
         default=120),

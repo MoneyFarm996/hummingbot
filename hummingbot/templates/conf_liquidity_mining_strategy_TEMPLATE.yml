@@ -21,10 +21,14 @@ order_amount: null
 # The spread from mid price to place bid and ask orders, enter 1 to indicate 1%
 spread: null
 
+# enable dynamic spread feature, true/false
+dynamic_spread: null
+
 # Whether to enable Inventory skew feature (true/false).
 inventory_skew_enabled: null
 
 # The target base asset percentage for all markets, enter 50 to indicate 50% target
+# chinese: 所有市场的目标基础资产百分比，输入50表示50%目标
 target_base_pct: null
 
 # Time in seconds before cancelling and placing new orders.
@@ -47,6 +51,7 @@ volatility_interval: null
 avg_volatility_period: null
 
 # The multiplier used to convert average volatility to spread, enter 1 for 1 to 1 conversion
+# chinese: 用于将平均波动率转换为价差的乘数，输入1表示1对1转换
 volatility_to_spread_multiplier: null
 
 # The maximum value for spread, enter 1 to indicate 1% or -1 to ignore this setting

@@ -117,14 +117,14 @@ class ScriptStrategyBase(StrategyPyBase):
         """
         A wrapper function to sell_with_specific_market.
 
-        :param connector_name: The name of the connector
-        :param trading_pair: The market trading pair
-        :param amount: An order amount in base token value
-        :param order_type: The type of the order
-        :param price: An order price
-        :param position_action: A position action (for perpetual market only)
+        :param connector_name: The name of the connector (exchange)
+        :param trading_pair: The market trading pair (e.g. BTC-USDT)
+        :param amount: An order amount in base token value (e.g. 0.1 BTC)
+        :param order_type: The type of the order (e.g. LIMIT)
+        :param price: An order price (e.g. 10000 USDT)
+        :param position_action: A position action (for perpetual market only) (e.g. OPEN)
 
-        :return: The client assigned id for the new order
+        :return: The client assigned id for the new order (e.g. 123456)
         """
         market_pair = self._market_trading_pair_tuple(connector_name, trading_pair)
         self.logger().debug(f"Creating {trading_pair} sell order: price: {price} amount: {amount}.")

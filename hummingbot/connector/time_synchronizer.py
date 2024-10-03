@@ -6,6 +6,7 @@ from typing import Awaitable, Deque
 
 import numpy
 
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.logger import HummingbotLogger
 
 
@@ -71,8 +72,8 @@ class TimeSynchronizer:
         except asyncio.CancelledError:
             raise
         except Exception:
-            self.logger().network("Error getting server time.", exc_info=True,
-                                  app_warning_msg="Could not refresh server time. Check network connection.")
+            self.logger().network(_("Error getting server time."), exc_info=True,
+                                  app_warning_msg=_("Could not refresh server time. Check network connection."))
 
     async def update_server_time_if_not_initialized(self, time_provider: Awaitable):
         """

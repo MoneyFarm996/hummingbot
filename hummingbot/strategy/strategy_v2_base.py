@@ -38,6 +38,7 @@ from hummingbot.strategy_v2.models.executors_info import ExecutorInfo
 class StrategyV2ConfigBase(BaseClientModel):
     """
     Base class for version 2 strategy configurations.
+    chinese: V2策略配置的基类。
     """
     markets: Dict[str, Set[str]] = Field(
         default="binance_perpetual.JASMY-USDT,RLC-USDT",
@@ -348,6 +349,7 @@ class StrategyV2Base(ScriptStrategyBase):
     def executors_info_to_df(executors_info: List[ExecutorInfo]) -> pd.DataFrame:
         """
         Convert a list of executor handler info to a dataframe.
+        chinese: 将执行器处理程序信息列表转换为数据框。
         """
         df = pd.DataFrame([ei.to_dict() for ei in executors_info])
         # Convert the enum values to integers

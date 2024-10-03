@@ -25,6 +25,7 @@ from hummingbot.client.config.config_data_types import BaseClientModel, ClientCo
 from hummingbot.client.config.config_var import ConfigVar
 from hummingbot.client.config.fee_overrides_config_map import fee_overrides_config_map, init_fee_overrides_config
 from hummingbot.client.config.gateway_ssl_config_map import SSLConfigMap
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.client.settings import (
     CLIENT_CONFIG_PATH,
     CONF_DIR_PATH,
@@ -356,7 +357,7 @@ class ReadOnlyClientConfigAdapter(ClientConfigAdapter):
         if key == "_hb_config":
             super().__setattr__(key, value)
         else:
-            raise AttributeError("Cannot set an attribute on a read-only client adapter")
+            raise AttributeError(_("Cannot set an attribute on a read-only client adapter"))
 
     @classmethod
     def lock_config(cls, config_map: ClientConfigMap):
@@ -615,12 +616,12 @@ def connector_name_from_file(file_path: Path) -> str:
 
 def validate_strategy_file(file_path: Path) -> Optional[str]:
     if not isfile(file_path):
-        return f"{file_path} file does not exist."
+        return _("{file_path} file does not exist.").format(file_path=file_path)
     strategy = strategy_name_from_file(file_path)
     if strategy is None:
-        return "Invalid configuration file or 'strategy' field is missing."
+        return _("Invalid configuration file or 'strategy' field is missing.")
     if strategy not in get_strategy_list():
-        return "Invalid strategy specified in the file."
+        return _("Invalid strategy specified in the file.")
     return None
 
 
@@ -641,7 +642,7 @@ def get_strategy_pydantic_config_cls(strategy_name: str) -> Optional[ModelMetacl
                                          fromlist=[f"{pydantic_cm_class_name}"])
             pydantic_cm_class = getattr(pydantic_cm_mod, pydantic_cm_class_name)
     except ImportError:
-        logging.getLogger().exception(f"Could not import Pydantic configs for {strategy_name}.")
+        logging.getLogger().exception(_("Could not import Pydantic configs for {strategy_name}.").format(strategy_name=strategy_name))
     return pydantic_cm_class
 
 
@@ -681,7 +682,7 @@ def load_client_config_map_from_file() -> ClientConfigAdapter:
 
     if len(config_validation_errors) > 0:
         all_errors = "\n".join(config_validation_errors)
-        raise ConfigValidationError(f"There are errors in the client global configuration (\n{all_errors})")
+        raise ConfigValidationError(_("There are errors in the client global configuration (\n{all_errors})").format(all_errors=all_errors))
     save_to_yml(yml_path, config_map)
 
     return config_map
@@ -699,7 +700,7 @@ def load_ssl_config_map_from_file() -> ClientConfigAdapter:
 
     if len(config_validation_errors) > 0:
         all_errors = "\n".join(config_validation_errors)
-        raise ConfigValidationError(f"There are errors in the ssl certs configuration (\n{all_errors})")
+        raise ConfigValidationError(_("There are errors in the ssl certs configuration (\n{all_errors})").format(all_errors=all_errors))
 
     if yml_path.exists():
         save_to_yml(yml_path, config_map)
@@ -769,7 +770,8 @@ async def save_yml_from_dict(yml_path: str, conf_dict: Dict[str, Any]):
             with open(yml_path, "w+", encoding="utf-8") as outfile:
                 yaml_parser.dump(data, outfile)
     except Exception as e:
-        logging.getLogger().error(f"Error writing configs: {str(e)}", exc_info=True)
+        # logging.getLogger().error(f"Error writing configs: {str(e)}", exc_info=True)
+        logging.getLogger().error(_("Error writing configs: {error}").format(error=str(e)), exc_info=True)
 
 
 async def load_yml_into_cm_legacy(yml_path: str, template_file_path: str, cm: Dict[str, ConfigVar]):
@@ -791,11 +793,11 @@ async def load_yml_into_cm_legacy(yml_path: str, template_file_path: str, cm: Di
 
             cvar = cm.get(key)
             if cvar is None:
-                logging.getLogger().error(f"Cannot find corresponding config to key {key} in template.")
+                logging.getLogger().error(_("Cannot find corresponding config to key {key} in template.").format(key=key))
                 continue
 
             if cvar.is_secure:
-                raise DeprecationWarning("Secure values are no longer supported in legacy configs.")
+                raise DeprecationWarning(_("Secure values are no longer supported in legacy configs."))
 
             val_in_file = data.get(key, None)
             if (val_in_file is None or val_in_file == "") and cvar.default is not None:
@@ -809,7 +811,10 @@ async def load_yml_into_cm_legacy(yml_path: str, template_file_path: str, cm: Di
                 if err_msg is not None:
                     # Instead of raising an exception, simply skip over this variable and wait till the user is prompted
                     logging.getLogger().error(
-                        "Invalid value %s for config variable %s: %s" % (val_in_file, cvar.key, err_msg)
+                        # "Invalid value %s for config variable %s: %s" % (val_in_file, cvar.key, err_msg)
+                        _("Invalid value {val_in_file} for config variable {cvar_key}: {err_msg}").format(
+                            val_in_file=val_in_file, cvar_key=cvar.key, err_msg=err_msg
+                        )
                     )
                     cvar.value = None
 
@@ -822,8 +827,9 @@ async def load_yml_into_cm_legacy(yml_path: str, template_file_path: str, cm: Di
             # save the old variables into the new config file
             save_to_yml_legacy(yml_path, cm)
     except Exception as e:
-        logging.getLogger().error("Error loading configs. Your config file may be corrupt. %s" % (e,),
-                                  exc_info=True)
+        # logging.getLogger().error("Error loading configs. Your config file may be corrupt. %s" % (e,),
+        #                           exc_info=True)
+        logging.getLogger().error(_("Error loading configs. Your config file may be corrupt. {error}").format(error=e), exc_info=True)
 
 
 async def read_system_configs_from_yml():
@@ -867,7 +873,8 @@ def save_to_yml_legacy(yml_path: str, cm: Dict[str, ConfigVar]):
             with open(yml_path, "w+", encoding="utf-8") as outfile:
                 yaml_parser.dump(data, outfile)
     except Exception as e:
-        logging.getLogger().error("Error writing configs: %s" % (str(e),), exc_info=True)
+        # logging.getLogger().error("Error writing configs: %s" % (str(e),), exc_info=True)
+        logging.getLogger().error(_("Error writing configs: {error}").format(error=str(e)), exc_info=True)
 
 
 def save_to_yml(yml_path: Path, cm: ClientConfigAdapter):
@@ -876,7 +883,8 @@ def save_to_yml(yml_path: Path, cm: ClientConfigAdapter):
         with open(yml_path, "w", encoding="utf-8") as outfile:
             outfile.write(cm_yml_str)
     except Exception as e:
-        logging.getLogger().error("Error writing configs: %s" % (str(e),), exc_info=True)
+        # logging.getLogger().error("Error writing configs: %s" % (str(e),), exc_info=True)
+        logging.getLogger().error(_("Error writing configs: {error}").format(error=str(e)), exc_info=True)
 
 
 def write_config_to_yml(

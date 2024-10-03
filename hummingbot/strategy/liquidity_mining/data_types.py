@@ -10,6 +10,7 @@ from decimal import Decimal
 class PriceSize:
     """
     Order price and order size.
+    中文：订单价格和订单数量
     """
     def __init__(self, price: Decimal, size: Decimal):
         self.price: Decimal = price
@@ -25,6 +26,7 @@ class Proposal:
     market is the base quote pair like "ETH-USDT".
     buy is a buy order proposal.
     sell is a sell order proposal.
+    中文：一个流动性挖矿的订单提案
     """
     def __init__(self, market: str, buy: PriceSize, sell: PriceSize):
         self.market: str = market

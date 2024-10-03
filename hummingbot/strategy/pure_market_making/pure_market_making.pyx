@@ -36,6 +36,12 @@ pmm_logger = None
 
 
 cdef class PureMarketMakingStrategy(StrategyBase):
+    """
+    PureMarketMakingStrategy places a pair of buy and sell orders at a certain spread away from the mid price.
+    If the spread is too small, the strategy will not place any order.
+    PureMarketMakingStrategy 以距中间价一定的价差放置一对买入和卖出订单。
+    如果点差太小，策略将不会下任何订单。
+    """
     OPTION_LOG_CREATE_ORDER = 1 << 3
     OPTION_LOG_MAKER_ORDER_FILLED = 1 << 4
     OPTION_LOG_STATUS_REPORT = 1 << 5
@@ -411,6 +417,11 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         return self._moving_price_band
 
     def get_price(self) -> Decimal:
+        """
+        Get the price to be used for order creation.
+        chinese: 获取用于订单创建的价格。
+        :return:
+        """
         price_provider = self._asset_price_delegate or self._market_info
         if self._price_type is PriceType.LastOwnTrade:
             price = self._last_own_trade_price
@@ -493,44 +504,70 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         self._inventory_cost_price_delegate = value
 
     def inventory_skew_stats_data_frame(self) -> Optional[pd.DataFrame]:
+        """
+        Returns a DataFrame with inventory skew stats.
+        chinese: 返回一个包含库存偏差统计数据的DataFrame。
+        :return:
+        """
         cdef:
             ExchangeBase market = self._market_info.market
 
+        # 获取当前价格
         price = self.get_price()
+        # 获取当前可用余额, 以基础资产和报价资产计价
         base_asset_amount, quote_asset_amount = self.c_get_adjusted_available_balance(self.active_orders)
+        # 计算订单总量
         total_order_size = calculate_total_order_size(self._order_amount, self._order_level_amount, self._order_levels)
-
+        # 计算基础资产价值
         base_asset_value = base_asset_amount * price
+        # 计算报价资产价值
         quote_asset_value = quote_asset_amount / price if price > s_decimal_zero else s_decimal_zero
+        # 计算总价值
         total_value = base_asset_amount + quote_asset_value
+        # 计算总价值(以报价资产计价)
         total_value_in_quote = (base_asset_amount * price) + quote_asset_amount
-
+        # 计算基础资产比例
         base_asset_ratio = (base_asset_amount / total_value
                             if total_value > s_decimal_zero
                             else s_decimal_zero)
+        # 计算报价资产比例
         quote_asset_ratio = Decimal("1") - base_asset_ratio if total_value > 0 else 0
+        # 计算目标基础资产比例
         target_base_ratio = self._inventory_target_base_pct
+        # 计算目标基础资产价值
         inventory_range_multiplier = self._inventory_range_multiplier
+        # 计算基础资产范围
         target_base_amount = (total_value * target_base_ratio
                               if price > s_decimal_zero
                               else s_decimal_zero)
+        # 计算报价资产范围
         target_base_amount_in_quote = target_base_ratio * total_value_in_quote
+        # 计算目标报价资产价值
         target_quote_amount = (1 - target_base_ratio) * total_value_in_quote
 
+        # 计算基础资产范围
         base_asset_range = total_order_size * self._inventory_range_multiplier
+        # 限制基础资产范围
         base_asset_range = min(base_asset_range, total_value * Decimal("0.5"))
+        # 计算高水位线
         high_water_mark = target_base_amount + base_asset_range
+        # 计算低水位线
         low_water_mark = max(target_base_amount - base_asset_range, s_decimal_zero)
+        # 计算低水位线比例
         low_water_mark_ratio = (low_water_mark / total_value
                                 if total_value > s_decimal_zero
                                 else s_decimal_zero)
+        # 计算高水位线比例
         high_water_mark_ratio = (high_water_mark / total_value
                                  if total_value > s_decimal_zero
                                  else s_decimal_zero)
+        # 限制高水位线比例
         high_water_mark_ratio = min(1.0, high_water_mark_ratio)
+        # 计算总订单大小比例
         total_order_size_ratio = (self._order_amount * Decimal("2") / total_value
                                   if total_value > s_decimal_zero
                                   else s_decimal_zero)
+        # 计算买卖比例
         bid_ask_ratios = c_calculate_bid_ask_ratios_from_base_asset_ratio(
             float(base_asset_amount),
             float(quote_asset_amount),
@@ -538,6 +575,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             float(target_base_ratio),
             float(base_asset_range)
         )
+        # 创建库存偏差数据
         inventory_skew_df = pd.DataFrame(data=[
             [f"Target Value ({self.quote_asset})", f"{target_base_amount_in_quote:.4f}",
              f"{target_quote_amount:.4f}"],
@@ -550,15 +588,30 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         return inventory_skew_df
 
     def pure_mm_assets_df(self, to_show_current_pct: bool) -> pd.DataFrame:
+        """
+        Returns a DataFrame with pure market making assets data.
+        chinese: 返回一个包含纯市场做市商资产数据的DataFrame。
+        :param to_show_current_pct:
+        :return:
+        """
         market, trading_pair, base_asset, quote_asset = self._market_info
+        # 获取当前中间价格
         price = self._market_info.get_mid_price()
+        # 获取当前基础资产余额
         base_balance = float(market.get_balance(base_asset))
+        # 获取当前报价资产余额
         quote_balance = float(market.get_balance(quote_asset))
+        # 获取当前可用基础资产余额
         available_base_balance = float(market.get_available_balance(base_asset))
+        # 获取当前可用报价资产余额
         available_quote_balance = float(market.get_available_balance(quote_asset))
+        # 计算基础资产价值
         base_value = base_balance * float(price)
+        # 计算报价资产总价值
         total_in_quote = base_value + quote_balance
+        # 计算基础资产比例
         base_ratio = base_value / total_in_quote if total_in_quote > 0 else 0
+        # 计算报价资产比例
         quote_ratio = quote_balance / total_in_quote if total_in_quote > 0 else 0
         data=[
             ["", base_asset, quote_asset],
@@ -572,6 +625,11 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         return df
 
     def active_orders_df(self) -> pd.DataFrame:
+        """
+        Returns a DataFrame with active orders.
+        chinese: 返回一个包含活动订单的DataFrame。
+        :return:
+        """
         market, trading_pair, base_asset, quote_asset = self._market_info
         price = self.get_price()
         active_orders = self.active_orders
@@ -612,6 +670,12 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         return pd.DataFrame(data=data, columns=columns)
 
     def market_status_data_frame(self, market_trading_pair_tuples: List[MarketTradingPairTuple]) -> pd.DataFrame:
+        """
+        Returns a DataFrame with market status data.
+        chinese: 返回一个包含市场状态数据的DataFrame。
+        :param market_trading_pair_tuples:
+        :return:
+        """
         markets_data = []
         markets_columns = ["Exchange", "Market", "Best Bid", "Best Ask", f"Ref Price ({self._price_type.name})"]
         if self._price_type is PriceType.LastOwnTrade and self._last_own_trade_price.is_nan():
@@ -646,6 +710,11 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         return pd.DataFrame(data=markets_data, columns=markets_columns).replace(np.nan, '', regex=True)
 
     def format_status(self) -> str:
+        """
+        Formats the status of the strategy.
+        chinese: 格式化策略的状态。
+        :return:
+        """
         if not self._all_markets_ready:
             return "Market connectors are not ready."
         cdef:
@@ -685,17 +754,37 @@ cdef class PureMarketMakingStrategy(StrategyBase):
     # The following exposed Python functions are meant for unit tests
     # ---------------------------------------------------------------
     def execute_orders_proposal(self, proposal: Proposal):
+        """
+        Execute the orders proposal.
+        chinese: 执行订单提案。
+        :param proposal:
+        :return:
+        """
         return self.c_execute_orders_proposal(proposal)
 
     def cancel_order(self, order_id: str):
+        """
+        Cancel an order by order_id.
+        chinese: 通过订单ID取消订单。
+        :param order_id:
+        :return:
+        """
         return self.c_cancel_order(self._market_info, order_id)
 
     # ---------------------------------------------------------------
 
     cdef c_start(self, Clock clock, double timestamp):
+        """
+        Start the strategy.
+        chinese: 启动策略。
+        :param clock 
+        :param timestamp
+        :return: 
+        """
         StrategyBase.c_start(self, clock, timestamp)
         self._last_timestamp = timestamp
-
+        # register events for hanging orders
+        # 注册挂单事件
         self._hanging_orders_tracker.register_events(self.active_markets)
 
         if self._hanging_orders_enabled:

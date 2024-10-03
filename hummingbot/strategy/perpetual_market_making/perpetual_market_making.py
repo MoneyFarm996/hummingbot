@@ -7,6 +7,7 @@ from typing import Dict, List
 import numpy as np
 import pandas as pd
 
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.connector.derivative.position import Position
 from hummingbot.connector.derivative_base import DerivativeBase
 from hummingbot.core.clock import Clock
@@ -82,7 +83,8 @@ class PerpetualMarketMakingStrategy(StrategyPyBase):
                     ):
 
         if price_ceiling != s_decimal_neg_one and price_ceiling < price_floor:
-            raise ValueError("Parameter price_ceiling cannot be lower than price_floor.")
+            # raise ValueError("Parameter price_ceiling cannot be lower than price_floor.")
+            raise ValueError(_("Parameter price_ceiling cannot be lower than price_floor."))
 
         self._sb_order_tracker = PerpetualMarketMakingOrderTracker()
         self._market_info = market_info
@@ -412,7 +414,8 @@ class PerpetualMarketMakingStrategy(StrategyPyBase):
 
     def format_status(self) -> str:
         if not self._all_markets_ready:
-            return "Market connectors are not ready."
+            # return "Market connectors are not ready."
+            return _("Market connectors are not ready.")
         lines = []
         warning_lines = []
 

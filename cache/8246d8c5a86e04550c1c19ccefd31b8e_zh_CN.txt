@@ -1,0 +1,19 @@
+高级数据库选项，目前支持 SQLAlchemy 包含的方言
+
+参考：https://docs.sqlalchemy.org/en/13/dialects/
+
+要使用 SQLite DB 实例，所需的配置是 
+  
+db_engine：sqlite
+
+要使用 DBMS 所需的配置是
+  
+数据库主机：127.0.0.1
+  
+数据库端口：3306
+  
+db_username：用户名
+  
+数据库密码：密码
+  
+数据库名称：数据库名称

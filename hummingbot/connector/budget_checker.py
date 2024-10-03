@@ -45,6 +45,11 @@ class BudgetChecker:
         See the doc string for `adjust_candidate` to learn more about how the adjusted order
         amount is derived.
 
+        填写候选订单的抵押品和退货字段。
+        如果资产不足以满足抵押要求，则调整订单金额。
+        请参阅“adjust_candidate”的文档字符串，了解有关如何调整顺序的更多信息
+        金额得出。
+
         :param order_candidates: A list of candidate orders to check and adjust.
         :param all_or_none: Should the order amount be set to zero on insufficient balance.
         :return: The list of adjusted order candidates.

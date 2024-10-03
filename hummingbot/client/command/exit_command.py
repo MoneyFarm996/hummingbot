@@ -3,6 +3,7 @@
 import asyncio
 from typing import TYPE_CHECKING
 
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.core.utils.async_utils import safe_ensure_future
 
 if TYPE_CHECKING:
@@ -21,9 +22,12 @@ class ExitCommand:
         if force is False and self._trading_required:
             success = await self._cancel_outstanding_orders()
             if not success:
-                self.notify('Wind down process terminated: Failed to cancel all outstanding orders. '
-                            '\nYou may need to manually cancel remaining orders by logging into your chosen exchanges'
-                            '\n\nTo force exit the app, enter "exit -f"')
+                # self.notify('Wind down process terminated: Failed to cancel all outstanding orders. '
+                #             '\nYou may need to manually cancel remaining orders by logging into your chosen exchanges'
+                #             '\n\nTo force exit the app, enter "exit -f"')
+                self.notify(_("Wind down process terminated: Failed to cancel all outstanding orders. "
+                              "\nYou may need to manually cancel remaining orders by logging into your chosen exchanges"
+                              "\n\nTo force exit the app, enter \"exit -f\""))
                 return
             # Freeze screen 1 second for better UI
             await asyncio.sleep(1)
@@ -31,7 +35,8 @@ class ExitCommand:
         if self._gateway_monitor is not None:
             self._gateway_monitor.stop()
 
-        self.notify("Winding down notifiers...")
+        # self.notify("Winding down notifiers...")
+        self.notify(_("Winding down notifiers..."))
         for notifier in self.notifiers:
             notifier.stop()
 

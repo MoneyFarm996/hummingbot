@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Callable, Dict, Optional
 
 from cachetools import TTLCache
 
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.core.data_type.common import TradeType
 from hummingbot.core.data_type.in_flight_order import InFlightOrder, OrderState, OrderUpdate, TradeUpdate
 from hummingbot.core.data_type.trade_fee import TradeFeeBase
@@ -30,7 +31,6 @@ cot_logger = None
 
 
 class ClientOrderTracker:
-
     MAX_CACHE_SIZE = 1000
     CACHED_ORDER_TTL = 30.0  # seconds
     TRADE_FILLS_WAIT_TIMEOUT = 5  # seconds
@@ -170,7 +170,7 @@ class ClientOrderTracker:
         return self._cached_orders.get(client_order_id, None)
 
     def fetch_order(
-        self, client_order_id: Optional[str] = None, exchange_order_id: Optional[str] = None
+            self, client_order_id: Optional[str] = None, exchange_order_id: Optional[str] = None
     ) -> Optional[InFlightOrder]:
         found_order = None
 
@@ -184,7 +184,7 @@ class ClientOrderTracker:
         return found_order
 
     def fetch_lost_order(
-        self, client_order_id: Optional[str] = None, exchange_order_id: Optional[str] = None
+            self, client_order_id: Optional[str] = None, exchange_order_id: Optional[str] = None
     ) -> Optional[InFlightOrder]:
         found_order = None
 
@@ -236,9 +236,15 @@ class ClientOrderTracker:
             if self._order_not_found_records[client_order_id] > self._lost_order_count_limit:
                 # Only mark the order as failed if it has not been marked as done already asynchronously
                 if tracked_order.current_state not in [OrderState.CANCELED, OrderState.FILLED, OrderState.FAILED]:
+                    # self.logger().warning(
+                    #     f"The order {client_order_id}({tracked_order.exchange_order_id}) will be "
+                    #     f"considered lost. Please check its status in the exchange."
+                    # )
                     self.logger().warning(
-                        f"The order {client_order_id}({tracked_order.exchange_order_id}) will be "
-                        f"considered lost. Please check its status in the exchange."
+                        _("The order {client_order_id}({exchange_order_id}) will be considered lost. Please check its status in the exchange.").format(
+                            client_order_id=client_order_id,
+                            exchange_order_id=tracked_order.exchange_order_id
+                        )
                     )
                     order_update: OrderUpdate = OrderUpdate(
                         client_order_id=client_order_id,
@@ -252,10 +258,15 @@ class ClientOrderTracker:
         else:
             lost_order = self._lost_orders.get(client_order_id)
             if lost_order is not None:
+                # self.logger().info(
+                #     f"The lost order {client_order_id}({lost_order.exchange_order_id}) was not found "
+                #     f"and will be removed"
+                # )
                 self.logger().info(
-                    f"The lost order {client_order_id}({lost_order.exchange_order_id}) was not found "
-                    f"and will be removed"
-                )
+                    _("The lost order {client_order_id}({exchange_order_id}) was not found and will be removed").format(
+                        client_order_id=client_order_id,
+                        exchange_order_id=lost_order.exchange_order_id
+                    ))
                 order_update: OrderUpdate = OrderUpdate(
                     client_order_id=client_order_id,
                     trading_pair=lost_order.trading_pair,
@@ -264,11 +275,15 @@ class ClientOrderTracker:
                 )
                 await self._process_order_update(order_update)
             else:
-                self.logger().debug(f"Order is not/no longer being tracked ({client_order_id})")
+                # self.logger().debug(f"Order is not/no longer being tracked ({client_order_id})")
+                self.logger().debug(_("Order is not/no longer being tracked ({client_order_id})").format(
+                    client_order_id=client_order_id))
 
     async def _process_order_update(self, order_update: OrderUpdate):
         if not order_update.client_order_id and not order_update.exchange_order_id:
-            self.logger().error("OrderUpdate does not contain any client_order_id or exchange_order_id", exc_info=True)
+            # self.logger().error("OrderUpdate does not contain any client_order_id or exchange_order_id", exc_info=True)
+            self.logger().error(_("OrderUpdate does not contain any client_order_id or exchange_order_id"),
+                                exc_info=True)
             return
 
         tracked_order: Optional[InFlightOrder] = self.fetch_order(
@@ -282,10 +297,15 @@ class ClientOrderTracker:
                         tracked_order.wait_until_completely_filled(), timeout=self.TRADE_FILLS_WAIT_TIMEOUT
                     )
                 except asyncio.TimeoutError:
+                    # self.logger().warning(
+                    #     f"The order fill updates did not arrive on time for {tracked_order.client_order_id}. "
+                    #     f"The complete update will be processed with incomplete information."
+                    # )
                     self.logger().warning(
-                        f"The order fill updates did not arrive on time for {tracked_order.client_order_id}. "
-                        f"The complete update will be processed with incomplete information."
-                    )
+                        _("The order fill updates did not arrive on time for {client_order_id}. "
+                          "The complete update will be processed with incomplete information.").format(
+                            client_order_id=tracked_order.client_order_id
+                        ))
 
             previous_state: OrderState = tracked_order.current_state
 
@@ -302,7 +322,8 @@ class ClientOrderTracker:
                     # If the order officially reaches a final state after being lost it should be removed from the lost list
                     del self._lost_orders[lost_order.client_order_id]
             else:
-                self.logger().debug(f"Order is not/no longer being tracked ({order_update})")
+                # self.logger().debug(f"Order is not/no longer being tracked ({order_update})")
+                self.logger().debug(_("Order is not/no longer being tracked ({order_update})").format(order_update=order_update))
 
     def _trigger_created_event(self, order: InFlightOrder):
         event_tag = MarketEvent.BuyOrderCreated if order.trade_type is TradeType.BUY else MarketEvent.SellOrderCreated
@@ -334,13 +355,13 @@ class ClientOrderTracker:
         )
 
     def _trigger_filled_event(
-        self,
-        order: InFlightOrder,
-        fill_amount: Decimal,
-        fill_price: Decimal,
-        fill_fee: TradeFeeBase,
-        trade_id: str,
-        exchange_order_id: str,
+            self,
+            order: InFlightOrder,
+            fill_amount: Decimal,
+            fill_price: Decimal,
+            fill_fee: TradeFeeBase,
+            trade_id: str,
+            exchange_order_id: str,
     ):
         self._connector.trigger_event(
             MarketEvent.OrderFilled,
@@ -405,10 +426,22 @@ class ClientOrderTracker:
                              trade_id: str,
                              exchange_order_id: str):
         if prev_executed_amount_base < tracked_order.executed_amount_base:
+            # self.logger().info(
+            #     f"The {tracked_order.trade_type.name.upper()} order {tracked_order.client_order_id} "
+            #     f"amounting to {tracked_order.executed_amount_base}/{tracked_order.amount} {tracked_order.base_asset} "
+            #     f"has been filled at {fill_price} {tracked_order.quote_asset}."
+            # )
             self.logger().info(
-                f"The {tracked_order.trade_type.name.upper()} order {tracked_order.client_order_id} "
-                f"amounting to {tracked_order.executed_amount_base}/{tracked_order.amount} {tracked_order.base_asset} "
-                f"has been filled at {fill_price} {tracked_order.quote_asset}."
+                _("The {trade_type} order {client_order_id} amounting to {executed_amount_base}/{amount} {base_asset} "
+                  "has been filled at {fill_price} {quote_asset}.").format(
+                    trade_type=tracked_order.trade_type.name.upper(),
+                    client_order_id=tracked_order.client_order_id,
+                    executed_amount_base=tracked_order.executed_amount_base,
+                    amount=tracked_order.amount,
+                    base_asset=tracked_order.base_asset,
+                    fill_price=fill_price,
+                    quote_asset=tracked_order.quote_asset
+                )
             )
             self._trigger_filled_event(
                 order=tracked_order,
@@ -425,17 +458,28 @@ class ClientOrderTracker:
 
         if tracked_order.is_cancelled:
             self._trigger_cancelled_event(tracked_order)
-            self.logger().info(f"Successfully canceled order {tracked_order.client_order_id}.")
+            # self.logger().info(f"Successfully canceled order {tracked_order.client_order_id}.")
+            self.logger().info(_("Successfully canceled order {client_order_id}.").format(
+                client_order_id=tracked_order.client_order_id
+            ))
 
         elif tracked_order.is_filled:
             self._trigger_completed_event(tracked_order)
             self.logger().info(
-                f"{tracked_order.trade_type.name.upper()} order {tracked_order.client_order_id} completely filled."
+                # f"{tracked_order.trade_type.name.upper()} order {tracked_order.client_order_id} completely filled."
+                _("The {trade_type} order {client_order_id} completely filled.").format(
+                    trade_type=tracked_order.trade_type.name.upper(),
+                    client_order_id=tracked_order.client_order_id
+                )
             )
 
         elif tracked_order.is_failure:
             self._trigger_failure_event(tracked_order)
-            self.logger().info(f"Order {tracked_order.client_order_id} has failed. Order Update: {order_update}")
+            # self.logger().info(f"Order {tracked_order.client_order_id} has failed. Order Update: {order_update}")
+            self.logger().info(_("Order {client_order_id} has failed. Order Update: {order_update}").format(
+                client_order_id=tracked_order.client_order_id,
+                order_update=order_update
+            ))
 
         self.stop_tracking_order(tracked_order.client_order_id)
 

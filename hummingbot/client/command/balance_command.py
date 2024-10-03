@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Dict, List
 import pandas as pd
 
 from hummingbot.client.config.config_validators import validate_decimal, validate_exchange
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.client.performance import PerformanceMetrics
 from hummingbot.client.settings import AllConnectorSettings
 from hummingbot.core.rate_oracle.rate_oracle import RateOracle
@@ -41,7 +42,7 @@ class BalanceCommand:
                     safe_ensure_future(self.show_asset_limits())
                     return
                 if len(args) != 3 or validate_exchange(args[0]) is not None or validate_decimal(args[2]) is not None:
-                    self.notify("Error: Invalid command arguments")
+                    self.notify(_("Error: Invalid command arguments"))
                     self.notify_balance_limit_set()
                     return
                 exchange = args[0]
@@ -51,10 +52,15 @@ class BalanceCommand:
                     balance_asset_limit[exchange] = {}
                 if amount < 0 and asset in balance_asset_limit[exchange].keys():
                     balance_asset_limit[exchange].pop(asset)
-                    self.notify(f"Limit for {asset} on {exchange} exchange removed.")
+                    # self.notify(f"Limit for {asset} on {exchange} exchange removed.")
+                    self.notify(
+                        _("Limit for {asset} on {exchange} exchange removed.").format(asset=asset, exchange=exchange))
                 elif amount >= 0:
                     balance_asset_limit[exchange][asset] = amount
-                    self.notify(f"Limit for {asset} on {exchange} exchange set to {amount}")
+                    # self.notify(f"Limit for {asset} on {exchange} exchange set to {amount}")
+                    self.notify(_("Limit for {asset} on {exchange} exchange set to {amount}").format(asset=asset,
+                                                                                                     exchange=exchange,
+                                                                                                     amount=amount))
                 self.save_client_config()
 
             elif option == "paper":
@@ -63,29 +69,33 @@ class BalanceCommand:
                     safe_ensure_future(self.show_paper_account_balance())
                     return
                 if len(args) != 2 or validate_decimal(args[1]) is not None:
-                    self.notify("Error: Invalid command arguments")
+                    # self.notify("Error: Invalid command arguments")
+                    self.notify(_("Error: Invalid command arguments"))
                     self.notify_balance_paper_set()
                     return
                 asset = args[0].upper()
                 amount = float(args[1])
                 paper_balances[asset] = amount
-                self.notify(f"Paper balance for {asset} token set to {amount}")
+                # self.notify(f"Paper balance for {asset} token set to {amount}")
+                self.notify(_("Paper balance for {asset} token set to {amount}").format(asset=asset, amount=amount))
                 self.save_client_config()
 
     async def show_balances(
-        self  # type: HummingbotApplication
+            self  # type: HummingbotApplication
     ):
         global_token_symbol = self.client_config_map.global_token.global_token_symbol
         total_col_name = f"Total ({global_token_symbol})"
         sum_not_for_show_name = "sum_not_for_show"
-        self.notify("Updating balances, please wait...")
+        # self.notify("Updating balances, please wait...")
+        self.notify(_("Updating balances, please wait..."))
         network_timeout = float(self.client_config_map.commands_timeout.other_commands_timeout)
         try:
             all_ex_bals = await asyncio.wait_for(
                 UserBalances.instance().all_balances_all_exchanges(self.client_config_map), network_timeout
             )
         except asyncio.TimeoutError:
-            self.notify("\nA network error prevented the balances to update. See logs for more details.")
+            # self.notify("\nA network error prevented the balances to update. See logs for more details.")
+            self.notify(_("\nA network error prevented the balances to update. See logs for more details."))
             raise
         all_ex_avai_bals = UserBalances.instance().all_available_balances_all_exchanges()
 
@@ -93,23 +103,35 @@ class BalanceCommand:
 
         for exchange, bals in all_ex_bals.items():
             self.notify(f"\n{exchange}:")
-            df, allocated_total = await self.exchange_balances_extra_df(exchange, bals, all_ex_avai_bals.get(exchange, {}))
+            df, allocated_total = await self.exchange_balances_extra_df(exchange, bals,
+                                                                        all_ex_avai_bals.get(exchange, {}))
             if df.empty:
-                self.notify("You have no balance on this exchange.")
+                # self.notify("You have no balance on this exchange.")
+                self.notify(_("You have no balance on this exchange."))
             else:
                 lines = [
                     "    " + line for line in df.drop(sum_not_for_show_name, axis=1).to_string(index=False).split("\n")
                 ]
                 self.notify("\n".join(lines))
-                self.notify(f"\n  Total: {global_token_symbol} "
-                            f"{PerformanceMetrics.smart_round(df[total_col_name].sum())}")
+                # self.notify(f"\n  Total: {global_token_symbol} "
+                #             f"{PerformanceMetrics.smart_round(df[total_col_name].sum())}")
+                self.notify(_("\n  Total: {global_token_symbol} {total}").format(
+                    total=PerformanceMetrics.smart_round(df[total_col_name].sum()),
+                    global_token_symbol=global_token_symbol
+                ))
                 allocated_percentage = 0
                 if df[sum_not_for_show_name].sum() != Decimal("0"):
                     allocated_percentage = allocated_total / df[sum_not_for_show_name].sum()
-                self.notify(f"Allocated: {allocated_percentage:.2%}")
+                # self.notify(f"Allocated: {allocated_percentage:.2%}")
+                self.notify(
+                    _("Allocated: {allocated_percentage}").format(allocated_percentage=f"{allocated_percentage:.2%}"))
                 exchanges_total += df[total_col_name].sum()
 
-        self.notify(f"\n\nExchanges Total: {global_token_symbol} {exchanges_total:.0f}    ")
+        # self.notify(f"\n\nExchanges Total: {global_token_symbol} {exchanges_total:.0f}    ")
+        self.notify(_("\n\nExchanges Total: {global_token_symbol} {exchanges_total:.0f}    ").format(
+            exchanges_total=exchanges_total,
+            global_token_symbol=global_token_symbol
+        ))
 
     async def exchange_balances_extra_df(self,  # type: HummingbotApplication
                                          exchange: str,
@@ -160,16 +182,18 @@ class BalanceCommand:
         return df
 
     async def show_asset_limits(
-        self  # type: HummingbotApplication
+            self  # type: HummingbotApplication
     ):
         exchange_limit_conf = self.client_config_map.balance_asset_limit
 
         if not any(list(exchange_limit_conf.values())):
-            self.notify("You have not set any limits.")
+            # self.notify("You have not set any limits.")
+            self.notify(_("You have not set any limits."))
             self.notify_balance_limit_set()
             return
 
-        self.notify("Balance Limits per exchange...")
+        # self.notify("Balance Limits per exchange...")
+        self.notify(_("Balance Limits per exchange..."))
 
         for exchange, asset_limit_config in exchange_limit_conf.items():
             if asset_limit_config is None:
@@ -178,7 +202,8 @@ class BalanceCommand:
             self.notify(f"\n{exchange}")
             df = await self.asset_limits_df(asset_limit_config)
             if df.empty:
-                self.notify("You have no limits on this exchange.")
+                # self.notify("You have no limits on this exchange.")
+                self.notify(_("You have no limits on this exchange."))
             else:
                 lines = ["    " + line for line in df.to_string(index=False).split("\n")]
                 self.notify("\n".join(lines))
@@ -194,24 +219,32 @@ class BalanceCommand:
         return df
 
     def notify_balance_limit_set(self):
-        self.notify("To set a balance limit (how much the bot can use): \n"
-                    "    balance limit [EXCHANGE] [ASSET] [AMOUNT]\n"
-                    "e.g. balance limit binance BTC 0.1")
+        # self.notify("To set a balance limit (how much the bot can use): \n"
+        #             "    balance limit [EXCHANGE] [ASSET] [AMOUNT]\n"
+        #             "e.g. balance limit binance BTC 0.1")
+        self.notify(_("To set a balance limit (how much the bot can use): \n"
+                      "    balance limit [EXCHANGE] [ASSET] [AMOUNT]\n"
+                      "e.g. balance limit binance BTC 0.1"))
 
     def notify_balance_paper_set(self):
-        self.notify("To set a paper account balance: \n"
-                    "    balance paper [ASSET] [AMOUNT]\n"
-                    "e.g. balance paper BTC 0.1")
+        # self.notify("To set a paper account balance: \n"
+        #             "    balance paper [ASSET] [AMOUNT]\n"
+        #             "e.g. balance paper BTC 0.1")
+        self.notify(_("To set a paper account balance: \n"
+                      "    balance paper [ASSET] [AMOUNT]\n"
+                      "e.g. balance paper BTC 0.1"))
 
     async def show_paper_account_balance(
-        self  # type: HummingbotApplication
+            self  # type: HummingbotApplication
     ):
         paper_balances = self.client_config_map.paper_trade.paper_trade_account_balance
         if not paper_balances:
-            self.notify("You have not set any paper account balance.")
+            # self.notify("You have not set any paper account balance.")
+            self.notify(_("You have not set any paper account balance."))
             self.notify_balance_paper_set()
             return
-        self.notify("Paper account balances:")
+        # self.notify("Paper account balances:")
+        self.notify(_("Paper account balances:"))
         df = await self.paper_acccount_balance_df(paper_balances)
         lines = ["    " + line for line in df.to_string(index=False).split("\n")]
         self.notify("\n".join(lines))

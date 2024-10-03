@@ -10,6 +10,7 @@ from hummingbot.client.config.config_helpers import (
     short_strategy_name,
     validate_strategy_file,
 )
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.client.settings import CONF_PREFIX, STRATEGIES_CONF_DIR_PATH, required_exchanges
 from hummingbot.core.utils.async_utils import safe_ensure_future
 
@@ -46,7 +47,8 @@ class ImportCommand:
         try:
             config_map = await load_strategy_config_map_from_file(strategy_path)
         except Exception as e:
-            self.notify(f'Strategy import error: {str(e)}')
+            # self.notify(f'Strategy import error: {str(e)}')
+            self.notify(_("Error importing strategy: {error}").format(error=str(e)))
             # Reset prompt settings
             self.placeholder_mode = False
             self.app.hide_input = False
@@ -59,7 +61,8 @@ class ImportCommand:
             else config_map.get("strategy").value  # legacy
         )
         self.strategy_config_map = config_map
-        self.notify(f"Configuration from {self.strategy_file_name} file is imported.")
+        # self.notify(f"Configuration from {self.strategy_file_name} file is imported.")
+        self.notify(_("Configuration from {file_name} file is imported.").format(file_name=self.strategy_file_name))
         self.placeholder_mode = False
         self.app.hide_input = False
         self.app.change_prompt(prompt=">>> ")
@@ -71,7 +74,8 @@ class ImportCommand:
             self.strategy_config_map = None
             raise
         if all_status_go:
-            self.notify("\nEnter \"start\" to start market making.")
+            # self.notify("\nEnter \"start\" to start market making.")
+            self.notify(_("\nEnter \"start\" to start market making."))
             autofill_import = self.client_config_map.autofill_import
             if autofill_import != AutofillImportEnum.disabled:
                 self.app.set_text(autofill_import)
@@ -79,13 +83,15 @@ class ImportCommand:
     async def prompt_a_file_name(self  # type: HummingbotApplication
                                  ):
         example = f"{CONF_PREFIX}{short_strategy_name('pure_market_making')}_{1}.yml"
-        file_name = await self.app.prompt(prompt=f'Enter path to your strategy file (e.g. "{example}") >>> ')
+        # file_name = await self.app.prompt(prompt=f'Enter path to your strategy file (e.g. "{example}") >>> ')
+        file_name = await self.app.prompt(prompt=_("Enter path to your strategy file (e.g. \"{example}\") >>> ").format(example=example))
         if self.app.to_stop_config:
             return
         file_path = STRATEGIES_CONF_DIR_PATH / file_name
         err_msg = validate_strategy_file(file_path)
         if err_msg is not None:
-            self.notify(f"Error: {err_msg}")
+            # self.notify(f"Error: {err_msg}")
+            self.notify(_("Error: {err_msg}").format(err_msg=err_msg))
             return await self.prompt_a_file_name()
         else:
             return file_name

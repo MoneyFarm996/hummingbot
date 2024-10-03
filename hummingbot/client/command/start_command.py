@@ -18,6 +18,7 @@ from hummingbot.client.config.config_data_types import BaseClientModel
 from hummingbot.client.config.config_helpers import get_strategy_starter_file
 from hummingbot.client.config.config_validators import validate_bool
 from hummingbot.client.config.config_var import ConfigVar
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.client.performance import PerformanceMetrics
 from hummingbot.core.clock import Clock, ClockMode
 from hummingbot.core.rate_oracle.rate_oracle import RateOracle
@@ -29,7 +30,6 @@ from hummingbot.strategy.strategy_v2_base import StrategyV2Base, StrategyV2Confi
 
 if TYPE_CHECKING:
     from hummingbot.client.hummingbot_application import HummingbotApplication  # noqa: F401
-
 
 GATEWAY_READY_TIMEOUT = 300  # seconds
 
@@ -75,7 +75,8 @@ class StartCommand(GatewayChainApiManager):
                           is_quickstart: Optional[bool] = False):
 
         if self._in_start_check or (self.strategy_task is not None and not self.strategy_task.done()):
-            self.notify('The bot is already running - please run "stop" first')
+            # self.notify('The bot is already running - please run "stop" first')
+            self.notify(_("The bot is already running - please run 'stop' first"))
             return
 
         self._in_start_check = True
@@ -84,7 +85,8 @@ class StartCommand(GatewayChainApiManager):
             # If the strategy to run requires using the rate oracle to find FX rates, validate there is a rate for
             # each configured token pair
             if not (await self.confirm_oracle_conversion_rate()):
-                self.notify("The strategy failed to start.")
+                # self.notify("The strategy failed to start.")
+                self.notify(_("The strategy failed to start."))
                 self._in_start_check = False
                 return
 
@@ -93,8 +95,12 @@ class StartCommand(GatewayChainApiManager):
                 try:
                     await asyncio.wait_for(self._gateway_monitor.ready_event.wait(), timeout=GATEWAY_READY_TIMEOUT)
                 except asyncio.TimeoutError:
-                    self.notify(f"TimeoutError waiting for gateway service to go online... Please ensure Gateway is configured correctly."
-                                f"Unable to start strategy {self.strategy_name}. ")
+                    # self.notify(f"TimeoutError waiting for gateway service to go online... Please ensure Gateway is configured correctly."
+                    #             f"Unable to start strategy {self.strategy_name}. ")
+                    self.notify(
+                        _("TimeoutError waiting for gateway service to go online... Please ensure Gateway is configured correctly."
+                          "Unable to start strategy {strategy_name}. ").format(strategy_name=self.strategy_name))
+
                     self._in_start_check = False
                     self.strategy_name = None
                     self.strategy_file_name = None
@@ -105,7 +111,8 @@ class StartCommand(GatewayChainApiManager):
             self.strategy_name = file_name
             self.strategy_file_name = conf if conf else file_name
         elif not await self.status_check_all(notify_success=False):
-            self.notify("Status checks failed. Start aborted.")
+            # self.notify("Status checks failed. Start aborted.")
+            self.notify(_("Status checks failed. Start aborted."))
             self._in_start_check = False
             return
         if self._last_started_strategy_file != self.strategy_file_name:
@@ -127,11 +134,13 @@ class StartCommand(GatewayChainApiManager):
             self._in_start_check = False
             self.strategy_name = None
             self.strategy_file_name = None
-            self.notify("Invalid strategy. Start aborted.")
+            # self.notify("Invalid strategy. Start aborted.")
+            self.notify(_("Invalid strategy. Start aborted."))
             raise
 
         if any([str(exchange).endswith("paper_trade") for exchange in settings.required_exchanges]):
-            self.notify("\nPaper Trading Active: All orders are simulated and no real orders are placed.")
+            # self.notify("\nPaper Trading Active: All orders are simulated and no real orders are placed.")
+            self.notify(_("\nPaper Trading Active: All orders are simulated and no real orders are placed."))
 
         for exchange in settings.required_exchanges:
             connector: str = str(exchange)
@@ -148,7 +157,8 @@ class StartCommand(GatewayChainApiManager):
                     ]
 
                     # check for node URL
-                    await self._test_node_url_from_gateway_config(connector_details['chain'], connector_details['network'])
+                    await self._test_node_url_from_gateway_config(connector_details['chain'],
+                                                                  connector_details['network'])
 
                     await GatewayCommand.update_exchange_balances(self, connector, self.client_config_map)
                     balances: List[str] = [
@@ -164,7 +174,8 @@ class StartCommand(GatewayChainApiManager):
                     if not is_quickstart:
                         self.app.clear_input()
                         self.placeholder_mode = True
-                        use_configuration = await self.app.prompt(prompt="Do you want to continue? (Yes/No) >>> ")
+                        # use_configuration = await self.app.prompt(prompt="Do you want to continue? (Yes/No) >>> ")
+                        use_configuration = await self.app.prompt(prompt=_("Do you want to continue? (Yes/No) >>> "))
                         self.placeholder_mode = False
                         self.app.change_prompt(prompt=">>> ")
 
@@ -173,11 +184,14 @@ class StartCommand(GatewayChainApiManager):
                             return
 
                         if use_configuration not in ["Y", "y", "Yes", "yes"]:
-                            self.notify("Invalid input. Please execute the `start` command again.")
+                            # self.notify("Invalid input. Please execute the `start` command again.")
+                            self.notify(_("Invalid input. Please execute the `start` command again."))
                             self._in_start_check = False
                             return
 
-        self.notify(f"\nStatus check complete. Starting '{self.strategy_name}' strategy...")
+        # self.notify(f"\nStatus check complete. Starting '{self.strategy_name}' strategy...")
+        self.notify(_("\nStatus check complete. Starting '{strategy_name}' strategy...").format(
+            strategy_name=self.strategy_name))
         await self.start_market_making()
 
         self._in_start_check = False
@@ -217,16 +231,23 @@ class StartCommand(GatewayChainApiManager):
                                  issubclass(member, ScriptStrategyBase) and
                                  member not in [ScriptStrategyBase, DirectionalStrategyBase, StrategyV2Base]))
         except StopIteration:
-            raise InvalidScriptModule(f"The module {script_name} does not contain any subclass of ScriptStrategyBase")
+            # raise InvalidScriptModule(f"The module {script_name} does not contain any subclass of ScriptStrategyBase")
+            raise InvalidScriptModule(
+                _("The module {script_name} does not contain any subclass of ScriptStrategyBase").format(
+                    script_name=script_name))
         if self.strategy_name != self.strategy_file_name:
             try:
                 config_class = next((member for member_name, member in inspect.getmembers(script_module)
-                                    if inspect.isclass(member) and
-                                    issubclass(member, BaseClientModel) and member not in [BaseClientModel, StrategyV2ConfigBase]))
+                                     if inspect.isclass(member) and
+                                     issubclass(member, BaseClientModel) and member not in [BaseClientModel,
+                                                                                            StrategyV2ConfigBase]))
                 config = config_class(**self.load_script_yaml_config(config_file_path=self.strategy_file_name))
                 script_class.init_markets(config)
             except StopIteration:
-                raise InvalidScriptModule(f"The module {script_name} does not contain any subclass of BaseModel")
+                # raise InvalidScriptModule(f"The module {script_name} does not contain any subclass of BaseModel")
+                raise InvalidScriptModule(
+                    _("The module {script_name} does not contain any subclass of BaseModel").format(
+                        script_name=script_name))
 
         return script_class, config
 
@@ -244,21 +265,27 @@ class StartCommand(GatewayChainApiManager):
         try:
             self.start_time = time.time() * 1e3  # Time in milliseconds
             tick_size = self.client_config_map.tick_size
-            self.logger().info(f"Creating the clock with tick size: {tick_size}")
+            # self.logger().info(f"Creating the clock with tick size: {tick_size}")
+            self.logger().info(_("Creating the clock with tick size: {tick_size}").format(tick_size=tick_size))
             self.clock = Clock(ClockMode.REALTIME, tick_size=tick_size)
             for market in self.markets.values():
                 if market is not None:
                     self.clock.add_iterator(market)
                     self.markets_recorder.restore_market_states(self.strategy_file_name, market)
                     if len(market.limit_orders) > 0:
-                        self.notify(f"Canceling dangling limit orders on {market.name}...")
+                        # self.notify(f"Canceling dangling limit orders on {market.name}...")
+                        self.notify(
+                            _("Canceling dangling limit orders on {market_name}...").format(market_name=market.name))
                         await market.cancel_all(10.0)
             if self.strategy:
                 self.clock.add_iterator(self.strategy)
             self.strategy_task: asyncio.Task = safe_ensure_future(self._run_clock(), loop=self.ev_loop)
-            self.notify(f"\n'{self.strategy_name}' strategy started.\n"
-                        f"Run `status` command to query the progress.")
-            self.logger().info("start command initiated.")
+            # self.notify(f"\n'{self.strategy_name}' strategy started.\n"
+            #             f"Run `status` command to query the progress.")
+            self.notify(_("\n'{strategy_name}' strategy started.\n"
+                          "Run `status` command to query the progress.").format(strategy_name=self.strategy_name))
+            # self.logger().info("start command initiated.")
+            self.logger().info(_("start command initiated."))
 
             if self._trading_required:
                 self.kill_switch = self.client_config_map.kill_switch_mode.get_kill_switch(self)
@@ -285,18 +312,23 @@ class StartCommand(GatewayChainApiManager):
             self.app.hide_input = True
             for pair in settings.rate_oracle_pairs:
                 msg = await self.oracle_rate_msg(pair)
-                self.notify("\nRate Oracle:\n" + msg)
+                # self.notify("\nRate Oracle:\n" + msg)
+                self.notify(_("\nRate Oracle:\n") + msg)
             config = ConfigVar(key="confirm_oracle_use",
                                type_str="bool",
-                               prompt="Please confirm to proceed if the above oracle source and rates are correct for "
-                                      "this strategy (Yes/No)  >>> ",
+                               # prompt="Please confirm to proceed if the above oracle source and rates are correct for "
+                               #        "this strategy (Yes/No)  >>> ",
+                               prompt=_(
+                                   "Please confirm to proceed if the above oracle source and rates are correct for "
+                                   "this strategy (Yes/No)  >>> "),
                                required_if=lambda: True,
                                validator=lambda v: validate_bool(v))
             await self.prompt_a_config_legacy(config)
             if config.value:
                 result = True
         except OracleRateUnavailable:
-            self.notify("Oracle rate is not available.")
+            # self.notify("Oracle rate is not available.")
+            self.notify(_("Oracle rate is not available."))
         finally:
             self.placeholder_mode = False
             self.app.hide_input = False

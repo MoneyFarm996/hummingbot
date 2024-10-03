@@ -7,6 +7,7 @@ import psutil
 import tabulate
 
 from hummingbot.client.config.config_data_types import ClientConfigEnum
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.client.performance import PerformanceMetrics
 from hummingbot.model.trade_fill import TradeFill
 
@@ -58,7 +59,7 @@ async def start_process_monitor(process_monitor):
 async def start_trade_monitor(trade_monitor):
     from hummingbot.client.hummingbot_application import HummingbotApplication
     hb = HummingbotApplication.main_application()
-    trade_monitor.log("Trades: 0, Total P&L: 0.00, Return %: 0.00%")
+    trade_monitor.log(_("Trades: 0, Total P&L: 0.00, Return %: 0.00%"))
     return_pcts = []
     pnls = []
 
@@ -85,19 +86,24 @@ async def start_trade_monitor(trade_monitor):
                                 total_pnls = f"{PerformanceMetrics.smart_round(sum(pnls))} {list(quote_assets)[0]}"
                             else:
                                 total_pnls = "N/A"
-                            trade_monitor.log(f"Trades: {len(trades)}, Total P&L: {total_pnls}, "
-                                              f"Return %: {avg_return:.2%}")
+                            trade_monitor_log = _(
+                                "trades: {trades}, Total P&L: {total_pnls}, Return %:{avg_return}").format(
+                                trades=len(trades),
+                                total_pnls=total_pnls,
+                                avg_return=f"{avg_return:.2%}"
+                            )
+                            trade_monitor.log(trade_monitor_log)
                             return_pcts.clear()
                             pnls.clear()
             await _sleep(2)  # sleeping for longer to manage resources
         except asyncio.CancelledError:
             raise
         except Exception:
-            hb.logger().exception("start_trade_monitor failed.")
+            hb.logger().exception(_("start_trade_monitor failed."))
 
 
 def format_df_for_printout(
-    df: pd.DataFrame, table_format: ClientConfigEnum, max_col_width: Optional[int] = None, index: bool = False
+        df: pd.DataFrame, table_format: ClientConfigEnum, max_col_width: Optional[int] = None, index: bool = False
 ) -> str:
     if max_col_width is not None:  # in anticipation of the next release of tabulate which will include maxcolwidth
         max_col_width = max(max_col_width, 4)

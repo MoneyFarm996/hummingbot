@@ -15,7 +15,7 @@ from hummingbot.data_feed.candles_feed.data_types import CandlesConfig
 from hummingbot.strategy.strategy_v2_base import StrategyV2Base, StrategyV2ConfigBase
 from hummingbot.strategy_v2.executors.position_executor.data_types import PositionExecutorConfig, TripleBarrierConfig
 from hummingbot.strategy_v2.models.executor_actions import CreateExecutorAction, StopExecutorAction
-
+from hummingbot.client.config.i18n import gettext as _
 
 class FundingRateArbitrageConfig(StrategyV2ConfigBase):
     script_file_name: str = Field(default_factory=lambda: os.path.basename(__file__))
@@ -25,13 +25,15 @@ class FundingRateArbitrageConfig(StrategyV2ConfigBase):
     leverage: int = Field(
         default=20, gt=0,
         client_data=ClientFieldData(
-            prompt=lambda mi: "Enter the leverage (e.g. 20): ",
+            prompt=lambda mi: _("Enter the leverage (e.g. 20): "),
+            # prompt=lambda mi: _("输入杠杆（例如 20）： "),
             prompt_on_new=True))
 
     min_funding_rate_profitability: Decimal = Field(
         default=0.001,
         client_data=ClientFieldData(
-            prompt=lambda mi: "Enter the min funding rate profitability to enter in a position: ",
+            prompt=lambda mi: _("Enter the min funding rate profitability to enter in a position: "),
+            # prompt=lambda mi: "输入建仓所需的最低资金费率盈利能力： ",
             prompt_on_new=True
         )
     )
@@ -39,41 +41,47 @@ class FundingRateArbitrageConfig(StrategyV2ConfigBase):
         default="hyperliquid_perpetual,binance_perpetual",
         client_data=ClientFieldData(
             prompt_on_new=True,
-            prompt=lambda mi: "Enter the connectors separated by commas:",
+            prompt=lambda mi: _("Enter the connectors separated by commas:"),
+            # prompt=lambda mi: "输入以逗号分隔的连接器：",
         )
     )
     tokens: Set[str] = Field(
         default="WIF,FET",
         client_data=ClientFieldData(
             prompt_on_new=True,
-            prompt=lambda mi: "Enter the tokens separated by commas:",
+            prompt=lambda mi: _("Enter the tokens separated by commas:"),
+            # prompt=lambda mi: "输入以逗号分隔的tokens：",
         )
     )
     position_size_quote: Decimal = Field(
         default=100,
         client_data=ClientFieldData(
             prompt_on_new=True,
-            prompt=lambda mi: "Enter the position size for each token and exchange (e.g. order amount 100 will open 100 long on hyperliquid and 100 short on binance):",
+            prompt=lambda mi: _("Enter the position size for each token and exchange (e.g. order amount 100 will open 100 long on hyperliquid and 100 short on binance):"),
+            # prompt=lambda mi: "输入每个代币和交易所的头寸规模（例如，订单金额 100 将在 hyperliquid 上开立 100 个多头，在 binance 上开立 100 个空头）：",
         )
     )
     profitability_to_take_profit: Decimal = Field(
         default=0.01,
         client_data=ClientFieldData(
             prompt_on_new=True,
-            prompt=lambda mi: "Enter the profitability to take profit (including PNL of positions and fundings received): ",
+            prompt=lambda mi: _("Enter the profitability to take profit (including PNL of positions and fundings received): "),
+            # prompt=lambda mi: "输入止盈（包括头寸的盈亏和收到的资金）： ",
         )
     )
     funding_rate_diff_stop_loss: Decimal = Field(
         default=-0.001,
         client_data=ClientFieldData(
-            prompt=lambda mi: "Enter the funding rate difference to stop the position: ",
+            prompt=lambda mi: _("Enter the funding rate difference to stop the position: "),
+            # prompt=lambda mi: "输入资金费率差价来止损： ",
             prompt_on_new=True
         )
     )
     trade_profitability_condition_to_enter: bool = Field(
         default=False,
         client_data=ClientFieldData(
-            prompt=lambda mi: "Create the position if the trade profitability is positive only: ",
+            prompt=lambda mi: _("Create the position if the trade profitability is positive only: "),
+            # prompt=lambda mi: "仅当交易盈利能力为正时创建头寸： ",
             prompt_on_new=True
         ))
 
@@ -85,6 +93,15 @@ class FundingRateArbitrageConfig(StrategyV2ConfigBase):
 
 
 class FundingRateArbitrage(StrategyV2Base):
+    """
+    This strategy is designed to take advantage of the funding rate differences between two perpetual contracts
+    in different exchanges. The strategy will create a long position in one exchange and a short position in the other
+    exchange based on the funding rate difference. The strategy will also take into account the trading profitability
+    after fees to enter the position and the funding payments received to close the position.
+    chinese:
+    该策略旨在利用不同交易所两个永续合约之间的资金费率差异。策略将根据资金费率差异在一个交易所中创建多头头寸，
+    在另一个交易所中创建空头头寸。策略还将考虑进入头寸的交易盈利能力和收到的资金支付以关闭头寸。
+    """
     quote_markets_map = {
         "hyperliquid_perpetual": "USD",
         "binance_perpetual": "USDT"
@@ -133,6 +150,7 @@ class FundingRateArbitrage(StrategyV2Base):
     def get_funding_info_by_token(self, token):
         """
         This method provides the funding rates across all the connectors
+        chinese: 该方法提供所有连接器的资金费率
         """
         funding_rates = {}
         for connector_name, connector in self.connectors.items():
@@ -144,6 +162,7 @@ class FundingRateArbitrage(StrategyV2Base):
         """
         This methods compares the profitability of buying at market in the two exchanges. If the side is TradeType.BUY
         means that the operation is long on connector 1 and short on connector 2.
+        chinese: 该方法比较两个交易所市价买入的盈利能力。如果 side 是 TradeType.BUY，表示在连接器 1 上多头操作，在连接器 2 上空头操作。
         """
         trading_pair_1 = self.get_trading_pair_for_connector(token, connector_1)
         trading_pair_2 = self.get_trading_pair_for_connector(token, connector_2)
@@ -188,6 +207,13 @@ class FundingRateArbitrage(StrategyV2Base):
         return estimated_trade_pnl_pct - estimated_fees_connector_1 - estimated_fees_connector_2
 
     def get_most_profitable_combination(self, funding_info_report: Dict):
+        """
+        This method will return the most profitable combination of connectors to create a position based on the
+        funding rate difference.
+        chinese: 该方法将根据资金费率差异返回创建头寸的连接器的最有利组合。
+        :param funding_info_report:
+        :return:
+        """
         best_combination = None
         highest_profitability = 0
         for connector_1 in funding_info_report:
@@ -213,6 +239,10 @@ class FundingRateArbitrage(StrategyV2Base):
         positive pnl between funding rate. Is logged and computed the trading profitability at the time for entering
         at market to open the possibilities for other people to create variations like sending limit position executors
         and if one gets filled buy market the other one to improve the entry prices.
+        chinese:
+        在这个方法中，我们将评估是否需要为没有活动套利的每个代币创建一组新头寸。
+        可以应用更多过滤器来限制头寸的创建，因为当前逻辑仅检查资金费率之间的正盈利。在记录日志和计算交易盈利能力的同时，
+        还可以通过以市价开仓来打开其他人创建变体的可能性，以提高入场价格。
         """
         create_actions = []
         for token in self.config.tokens:
@@ -252,6 +282,9 @@ class FundingRateArbitrage(StrategyV2Base):
         Once the funding rate arbitrage is created we are going to control the funding payments pnl and the current
         pnl of each of the executors at the cost of closing the open position at market.
         If that PNL is greater than the profitability_to_take_profit
+        chinese:
+        一旦创建了资金费率套利，我们将控制资金支付 pnl 和每个执行器的当前 pnl，以关闭市价的开放头寸。
+        如果该 PNL 大于 profitability_to_take_profit
         """
         stop_executor_actions = []
         for token, funding_arbitrage_info in self.active_funding_arbitrages.items():
@@ -282,12 +315,23 @@ class FundingRateArbitrage(StrategyV2Base):
         """
         Based on the funding payment event received, check if one of the active arbitrages matches to add the event
         to the list.
+        chinese:
+        根据收到的资金支付事件，检查是否有一个活动套利与事件匹配，以将事件添加到列表中。
         """
         token = funding_payment_completed_event.trading_pair.split("-")[0]
         if token in self.active_funding_arbitrages:
             self.active_funding_arbitrages[token]["funding_payments"].append(funding_payment_completed_event)
 
     def get_position_executors_config(self, token, connector_1, connector_2, trade_side):
+        """
+        This method will return the configuration for the position executors based on the token, connectors and trade side
+        chinese: 该方法将根据代币、连接器和交易方向返回头寸执行器的配置
+        :param token:
+        :param connector_1:
+        :param connector_2:
+        :param trade_side:
+        :return:
+        """
         price = self.market_data_provider.get_price_by_type(
             connector_name=connector_1,
             trading_pair=self.get_trading_pair_for_connector(token, connector_1),
@@ -316,6 +360,11 @@ class FundingRateArbitrage(StrategyV2Base):
         return position_executor_config_1, position_executor_config_2
 
     def format_status(self) -> str:
+        """
+        This method will format the status of the strategy to be displayed in the UI.
+        chinese: 该方法将格式化策略的状态，以在 UI 中显示。
+        :return:
+        """
         original_status = super().format_status()
         funding_rate_status = []
         if self.ready_to_trade:

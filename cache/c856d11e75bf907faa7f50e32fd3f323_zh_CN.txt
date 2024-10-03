@@ -1,0 +1,1 @@
+汇率预言机的来源，目前为 {RATE_SOURCE_MODES}

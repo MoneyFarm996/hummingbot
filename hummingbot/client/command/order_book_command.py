@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING
 
 import pandas as pd
 
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.client.ui.interface_utils import format_df_for_printout
 from hummingbot.core.utils.async_utils import safe_ensure_future
 
@@ -28,11 +29,13 @@ class OrderBookCommand:
                               market: str = None,
                               live: bool = False):
         if len(self.markets.keys()) == 0:
-            self.notify("There is currently no active market.")
+            # self.notify("There is currently no active market.")
+            self.notify(_("There is currently no active market."))
             return
         if exchange is not None:
             if exchange not in self.markets:
-                self.notify("Invalid exchange")
+                # self.notify("Invalid exchange")
+                self.notify(_("Invalid exchange"))
                 return
             market_connector = self.markets[exchange]
         else:
@@ -40,7 +43,8 @@ class OrderBookCommand:
         if market is not None:
             market = market.upper()
             if market not in market_connector.order_books:
-                self.notify("Invalid market")
+                # self.notify("Invalid market")
+                self.notify(_("Invalid market"))
                 return
             trading_pair, order_book = market, market_connector.order_books[market]
         else:
@@ -64,6 +68,7 @@ class OrderBookCommand:
             self.app.live_updates = True
             while self.app.live_updates:
                 await self.cls_display_delay(get_order_book(min(lines, 35)) + "\n\n Press escape key to stop update.", 0.5)
-            self.notify("Stopped live orderbook display update.")
+            # self.notify("Stopped live orderbook display update.")
+            self.notify(_("Stopped live orderbook display update."))
         else:
             self.notify(get_order_book(lines))

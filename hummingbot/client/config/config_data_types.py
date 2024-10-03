@@ -9,6 +9,7 @@ from pydantic.schema import default_ref_template
 
 from hummingbot.client.config.config_methods import strategy_config_schema_encoder
 from hummingbot.client.config.config_validators import validate_connector, validate_decimal
+from hummingbot.client.config.i18n import gettext as _
 
 
 class ClientConfigEnum(Enum):
@@ -71,7 +72,7 @@ class BaseConnectorConfigMap(BaseClientModel):
     connector: str = Field(
         default=...,
         client_data=ClientFieldData(
-            prompt=lambda mi: "What is your connector?",
+            prompt=lambda mi: _("What is your connector?"),
             prompt_on_new=True,
         ),
     )

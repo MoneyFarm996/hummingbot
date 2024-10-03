@@ -3,12 +3,12 @@ import threading
 import time
 from typing import TYPE_CHECKING
 
+from hummingbot.client.config.i18n import gettext as _
 from hummingbot.core.utils.async_utils import safe_ensure_future
 from hummingbot.remote_iface.mqtt import MQTTGateway
 
 if TYPE_CHECKING:
     from hummingbot.client.hummingbot_application import HummingbotApplication  # noqa: F401
-
 
 SUBCOMMANDS = ['start', 'stop', 'restart']
 
@@ -50,31 +50,43 @@ class MQTTCommand:
             while True:
                 try:
                     start_t = time.time()
-                    self.logger().info('Connecting MQTT Bridge...')
+                    # self.logger().info('Connecting MQTT Bridge...')
+                    self.logger().info(_('Connecting MQTT Bridge...'))
                     self._mqtt = MQTTGateway(self)
                     self._mqtt.start()
                     while True:
                         if time.time() - start_t > timeout:
-                            raise Exception(
-                                f'Connection timed out after {timeout} seconds')
+                            # raise Exception(
+                            #     f'Connection timed out after {timeout} seconds')
+                            raise Exception(_(
+                                'Connection timed out after {timeout} seconds').format(timeout=timeout))
                         if self._mqtt.health:
-                            self.logger().info('MQTT Bridge connected with success.')
-                            self.notify('MQTT Bridge connected with success.')
+                            # self.logger().info('MQTT Bridge connected with success.')
+                            # self.notify('MQTT Bridge connected with success.')
+                            self.logger().info(_('MQTT Bridge connected with success.'))
+                            self.notify(_('MQTT Bridge connected with success.'))
                             break
                         await asyncio.sleep(self._mqtt_sleep_rate_connection_check)
                     break
                 except Exception as e:
                     if self.client_config_map.mqtt_bridge.mqtt_autostart:
                         s = self._mqtt_sleep_rate_autostart_retry
+                        # self.logger().error(
+                        #     f'Failed to connect MQTT Bridge: {str(e)}. Retrying in {s} seconds.')
+                        # self.notify(
+                        #     f'MQTT Bridge failed to connect to the broker, retrying in {s} seconds.'
+                        # )
                         self.logger().error(
-                            f'Failed to connect MQTT Bridge: {str(e)}. Retrying in {s} seconds.')
+                            _('Failed to connect MQTT Bridge: {error}. Retrying in {s} seconds.').format(error=str(e),
+                                                                                                         s=s))
                         self.notify(
-                            f'MQTT Bridge failed to connect to the broker, retrying in {s} seconds.'
-                        )
+                            _('MQTT Bridge failed to connect to the broker, retrying in {s} seconds.').format(s=s))
                     else:
-                        self.logger().error(
-                            f'Failed to connect MQTT Bridge: {str(e)}')
-                        self.notify('MQTT Bridge failed to connect to the broker.')
+                        # self.logger().error(
+                        #     f'Failed to connect MQTT Bridge: {str(e)}')
+                        # self.notify('MQTT Bridge failed to connect to the broker.')
+                        self.logger().error(_('Failed to connect MQTT Bridge: {error}').format(error=str(e)))
+                        self.notify(_('MQTT Bridge failed to connect to the broker.'))
                     self._mqtt.stop()
                     self._mqtt = None
 
@@ -84,8 +96,10 @@ class MQTTCommand:
                         break
 
         else:
-            self.logger().warning("MQTT Bridge is already running!")
-            self.notify('MQTT Bridge is already running!')
+            # self.logger().warning("MQTT Bridge is already running!")
+            # self.notify('MQTT Bridge is already running!')
+            self.logger().warning(_('MQTT Bridge is already running!'))
+            self.notify(_('MQTT Bridge is already running!'))
 
     async def stop_mqtt_async(self,  # type: HummingbotApplication
                               ):
@@ -93,13 +107,18 @@ class MQTTCommand:
             try:
                 self._mqtt.stop()
                 self._mqtt = None
-                self.logger().info("MQTT Bridge disconnected")
-                self.notify('MQTT Bridge disconnected')
+                # self.logger().info("MQTT Bridge disconnected")
+                # self.notify('MQTT Bridge disconnected')
+                self.logger().info(_('MQTT Bridge disconnected'))
+                self.notify(_('MQTT Bridge disconnected'))
             except Exception as e:
-                self.logger().error(f'Failed to stop MQTT Bridge: {str(e)}')
+                # self.logger().error(f'Failed to stop MQTT Bridge: {str(e)}')
+                self.logger().error(_('Failed to stop MQTT Bridge: {error}').format(error=str(e)))
         else:
-            self.logger().error("MQTT is already stopped!")
-            self.notify('MQTT Bridge is already stopped!')
+            # self.logger().error("MQTT is already stopped!")
+            # self.notify('MQTT Bridge is already stopped!')
+            self.logger().error(_('MQTT is already stopped!'))
+            self.notify(_('MQTT Bridge is already stopped!'))
 
     async def restart_mqtt_async(self,  # type: HummingbotApplication
                                  timeout: float = 2.0

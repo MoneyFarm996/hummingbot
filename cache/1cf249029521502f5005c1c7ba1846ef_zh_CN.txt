@@ -1,0 +1,2 @@
+CoinCap 的符号到资产 ID 映射。
+可以通过选择 https://coincap.io/ 上的符号并提取 URL 路径的最后一段来找到资产 ID。
