@@ -16,6 +16,7 @@ RUN conda env create -f /tmp/environment.yml && \
 
 # Copy remaining files
 COPY bin/ bin/
+COPY cache/ cache/
 COPY hummingbot/ hummingbot/
 COPY scripts/ scripts/
 COPY controllers/ controllers/

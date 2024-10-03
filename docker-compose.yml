@@ -2,7 +2,7 @@ version: "3.9"
 services:
   hummingbot:
     container_name: hummingbot_zh
-    image: hummingbot/hummingbot:latest
+    image: hummingbot/hummingbot_zh:latest
 #    build: Uncomment this and comment image if you want to build it locally
 #      context: .
 #      dockerfile: Dockerfile
@@ -14,6 +14,7 @@ services:
       - ./conf/scripts:/home/hummingbot/conf/scripts
       - ./logs:/home/hummingbot/logs
       - ./data:/home/hummingbot/data
+      - ./cache:/home/hummingbot/cache
       - ./certs:/home/hummingbot/certs
       - ./scripts:/home/hummingbot/scripts
       - ./controllers:/home/hummingbot/controllers
