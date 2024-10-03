@@ -2,21 +2,21 @@ version: "3.9"
 services:
   hummingbot:
     container_name: hummingbot_zh
-    image: hummingbot/hummingbot_zh:latest
+    image: hummingbot/hummingbot:latest
 #    build: Uncomment this and comment image if you want to build it locally
 #      context: .
 #      dockerfile: Dockerfile
     volumes:
-      - ./conf:/home/hummingbot_zh/conf
-      - ./conf/connectors:/home/hummingbot_zh/conf/connectors
-      - ./conf/strategies:/home/hummingbot_zh/conf/strategies
-      - ./conf/controllers:/home/hummingbot_zh/conf/controllers
-      - ./conf/scripts:/home/hummingbot_zh/conf/scripts
-      - ./logs:/home/hummingbot_zh/logs
-      - ./data:/home/hummingbot_zh/data
-      - ./certs:/home/hummingbot_zh/certs
-      - ./scripts:/home/hummingbot_zh/scripts
-      - ./controllers:/home/hummingbot_zh/controllers
+      - ./conf:/home/hummingbot/conf
+      - ./conf/connectors:/home/hummingbot/conf/connectors
+      - ./conf/strategies:/home/hummingbot/conf/strategies
+      - ./conf/controllers:/home/hummingbot/conf/controllers
+      - ./conf/scripts:/home/hummingbot/conf/scripts
+      - ./logs:/home/hummingbot/logs
+      - ./data:/home/hummingbot/data
+      - ./certs:/home/hummingbot/certs
+      - ./scripts:/home/hummingbot/scripts
+      - ./controllers:/home/hummingbot/controllers
     logging:
       driver: "json-file"
       options:
