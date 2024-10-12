@@ -329,10 +329,11 @@ class LiquidityMiningStrategy(StrategyPyBase):
         中文注释：每个滴答，此策略根据market_info和构造函数中的参数创建一组提案。
         """
         # 判断是否启用dynamic_spread
-        if self._dynamic_spread:
-            return self.create_base_proposals_dynamic()
-        else:
-            return self.create_base_proposals_static()
+        # if self._dynamic_spread:
+        #     return self.create_base_proposals_dynamic()
+        # else:
+        #     return self.create_base_proposals_static()
+        return self.create_base_proposals_static()
 
     def create_base_proposals_static(self):
         proposals = []

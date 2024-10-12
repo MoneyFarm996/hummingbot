@@ -17,8 +17,11 @@ class AdjustedMidPrice(ScriptStrategyBase):
     the midpoint of a hypothetical buy and sell of a user defined {test_volume}.
     Example:
     let test_volume = 10 and the pair = BTC-USDT, then the new mid price will be the mid price of the following two points:
+    令 test_volume = 10 且货币对 = BTC-USDT，则新的中间价将是以下两点的中间价：
     1) the average fill price of a hypothetical market buy of 10 BTC
+    1) 假设市场买入 10 BTC 的平均成交价格
     2) the average fill price of a hypothetical market sell of 10 BTC
+    2) 假设市场卖出 10 BTC 的平均成交价格
     """
 
     # The following strategy dictionary are parameters that the script operator can adjustS
@@ -45,6 +48,12 @@ class AdjustedMidPrice(ScriptStrategyBase):
         - Refreshes the current bid and ask if they are set to None
         - Cancels the current bid or current ask if they are past their order_refresh_time
           The canceled orders will be refreshed next tic
+
+        每tick_size秒运行一次，这是该策略的主要操作。
+        这个方法做了两件事：
+        - 刷新当前出价并询问它们是否设置为“无”
+        - 如果当前出价或当前要价超过了 order_refresh_time，则取消当前出价或当前要价
+          取消的订单将在下个ticket刷新
         """
         ##
         # refresh order logic
